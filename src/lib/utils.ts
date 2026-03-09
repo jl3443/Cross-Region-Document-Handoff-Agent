@@ -18,8 +18,8 @@ export function formatCountdown(hours: number): string {
 }
 
 export function getCutoffColor(hours: number): string {
-  if (hours > 24) return 'text-green-600';
-  if (hours > 4) return 'text-amber-600';
-  if (hours > 1) return 'text-orange-600';
-  return 'text-red-600';
+  if (hours > 24) return 'text-emerald-400';
+  if (hours > 4) return 'text-amber-400';
+  if (hours > 1) return 'text-orange-400';
+  return 'text-red-400';
 }

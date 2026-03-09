@@ -8,14 +8,14 @@ interface ComparisonViewProps {
 
 export function ComparisonView({ fields }: ComparisonViewProps) {
   return (
-    <div className="overflow-hidden rounded-lg border border-slate-200">
-      <table className="w-full text-left text-sm">
+    <div className="overflow-hidden rounded-lg border border-neutral-800">
+      <table className="w-full text-left text-xs">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <th className="px-4 py-2.5">Field</th>
-            <th className="px-4 py-2.5">Document Value</th>
-            <th className="px-4 py-2.5">System Reference</th>
-            <th className="px-4 py-2.5 text-center">Status</th>
+          <tr className="border-b border-neutral-800 bg-neutral-900/80">
+            <th className="px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Field</th>
+            <th className="px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Document Value</th>
+            <th className="px-4 py-2.5 text-[10px] font-semibold uppercase tracking-wider text-neutral-500">System Reference</th>
+            <th className="px-4 py-2.5 text-center text-[10px] font-semibold uppercase tracking-wider text-neutral-500">Match</th>
           </tr>
         </thead>
         <tbody>
@@ -25,46 +25,29 @@ export function ComparisonView({ fields }: ComparisonViewProps) {
               <tr
                 key={idx}
                 className={cn(
-                  'border-b border-slate-100 last:border-b-0',
+                  'border-b border-neutral-800/50 last:border-b-0',
                   isMatch
-                    ? 'border-l-2 border-l-green-400 bg-green-50/50'
-                    : 'border-l-2 border-l-red-400 bg-red-50/50'
+                    ? 'border-l-2 border-l-emerald-500/60'
+                    : 'border-l-2 border-l-red-500/60'
                 )}
               >
-                {/* Field name */}
-                <td className="px-4 py-2.5 text-xs font-medium text-slate-600">
+                <td className="px-4 py-2.5 text-xs font-medium text-neutral-400">
                   {field.field}
                 </td>
-
-                {/* Document value */}
-                <td
-                  className={cn(
-                    'px-4 py-2.5 text-xs',
-                    !isMatch ? 'font-semibold text-red-700' : 'text-slate-700'
-                  )}
-                >
+                <td className={cn('px-4 py-2.5 text-xs', !isMatch ? 'font-semibold text-red-400' : 'text-neutral-300')}>
                   {field.documentValue}
                 </td>
-
-                {/* System reference */}
-                <td
-                  className={cn(
-                    'px-4 py-2.5 text-xs',
-                    !isMatch ? 'font-semibold text-red-700' : 'text-slate-700'
-                  )}
-                >
+                <td className={cn('px-4 py-2.5 text-xs', !isMatch ? 'font-semibold text-red-400' : 'text-neutral-300')}>
                   {field.systemValue}
                 </td>
-
-                {/* Status icon */}
                 <td className="px-4 py-2.5 text-center">
                   {isMatch ? (
-                    <span className="inline-flex items-center justify-center rounded-full bg-green-100 p-1">
-                      <Check className="h-3.5 w-3.5 text-green-600" />
+                    <span className="inline-flex items-center justify-center rounded-full bg-emerald-500/10 p-1 ring-1 ring-emerald-500/20">
+                      <Check className="h-3 w-3 text-emerald-400" />
                     </span>
                   ) : (
-                    <span className="inline-flex items-center justify-center rounded-full bg-red-100 p-1">
-                      <X className="h-3.5 w-3.5 text-red-600" />
+                    <span className="inline-flex items-center justify-center rounded-full bg-red-500/10 p-1 ring-1 ring-red-500/20">
+                      <X className="h-3 w-3 text-red-400" />
                     </span>
                   )}
                 </td>

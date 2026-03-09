@@ -30,7 +30,6 @@ export function CommunicationDraftPanel({
     ]
       .filter(Boolean)
       .join('\n');
-
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -39,37 +38,37 @@ export function CommunicationDraftPanel({
   if (!activeDraft) return null;
 
   return (
-    <div className="flex h-full flex-col bg-white">
+    <div className="flex h-full flex-col bg-[#0a0a0a]">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-200 px-5 py-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">
+      <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3">
+        <h2 className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
           Communication Drafts
         </h2>
         <button
           onClick={onClose}
-          className="rounded p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+          className="rounded-md p-1 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-white"
         >
-          <X size={18} />
+          <X size={16} />
         </button>
       </div>
 
       {/* Tab bar */}
-      <div className="flex border-b border-slate-200 bg-slate-50 px-4">
+      <div className="flex border-b border-neutral-800 bg-neutral-900/50 px-4">
         {drafts.map((draft) => (
           <button
             key={draft.tab}
             onClick={() => setActiveTab(draft.tab)}
-            className={`relative px-4 py-2.5 text-sm font-medium transition-colors ${
+            className={`relative px-4 py-2.5 text-xs font-medium transition-colors ${
               activeTab === draft.tab
-                ? 'text-[#0000B3]'
-                : 'text-slate-500 hover:text-slate-700'
+                ? 'text-white'
+                : 'text-neutral-500 hover:text-neutral-300'
             }`}
           >
             {draft.tab}
             {activeTab === draft.tab && (
               <motion.div
                 layoutId="draft-tab-indicator"
-                className="absolute inset-x-0 bottom-0 h-0.5 bg-[#0000B3]"
+                className="absolute inset-x-0 bottom-0 h-px bg-white"
               />
             )}
           </button>
@@ -87,60 +86,47 @@ export function CommunicationDraftPanel({
             transition={{ duration: 0.15 }}
           >
             {/* Email fields */}
-            <div className="space-y-2">
-              <div className="flex items-baseline gap-2 text-sm">
-                <span className="w-16 shrink-0 text-right font-medium text-slate-400">
-                  To:
-                </span>
-                <span className="font-medium text-slate-800">
-                  {activeDraft.to}
-                </span>
+            <div className="space-y-2 rounded-lg border border-neutral-800 bg-neutral-900/50 px-4 py-3">
+              <div className="flex items-baseline gap-3 text-xs">
+                <span className="w-14 shrink-0 text-right font-medium text-neutral-600">To:</span>
+                <span className="font-medium text-white">{activeDraft.to}</span>
               </div>
               {activeDraft.cc && (
-                <div className="flex items-baseline gap-2 text-sm">
-                  <span className="w-16 shrink-0 text-right font-medium text-slate-400">
-                    CC:
-                  </span>
-                  <span className="text-slate-600">{activeDraft.cc}</span>
+                <div className="flex items-baseline gap-3 text-xs">
+                  <span className="w-14 shrink-0 text-right font-medium text-neutral-600">CC:</span>
+                  <span className="text-neutral-400">{activeDraft.cc}</span>
                 </div>
               )}
-              <div className="flex items-baseline gap-2 text-sm">
-                <span className="w-16 shrink-0 text-right font-medium text-slate-400">
-                  Subject:
-                </span>
-                <span className="font-semibold text-slate-900">
-                  {activeDraft.subject}
-                </span>
+              <div className="flex items-baseline gap-3 text-xs">
+                <span className="w-14 shrink-0 text-right font-medium text-neutral-600">Subject:</span>
+                <span className="font-semibold text-white">{activeDraft.subject}</span>
               </div>
             </div>
 
             {/* Email body */}
-            <div className="mt-4 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <p
-                className="whitespace-pre-wrap font-mono text-sm leading-relaxed text-slate-700"
-                style={{ fontFamily: "'SF Mono', 'Fira Code', 'Consolas', monospace" }}
-              >
+            <div className="mt-4 rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
+              <pre className="whitespace-pre-wrap font-mono text-xs leading-relaxed text-neutral-300">
                 {activeDraft.body}
-              </p>
+              </pre>
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
       {/* Bottom action bar */}
-      <div className="flex items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-3">
+      <div className="flex items-center justify-end gap-2 border-t border-neutral-800 bg-neutral-900/50 px-5 py-3">
         <button
           onClick={handleCopy}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+          className="inline-flex items-center gap-2 rounded-lg border border-neutral-700 bg-neutral-800 px-4 py-2 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-700 hover:text-white"
         >
-          <Copy size={15} />
-          {copied ? 'Copied!' : 'Copy to Clipboard'}
+          <Copy size={13} />
+          {copied ? 'Copied!' : 'Copy'}
         </button>
         <button
           onClick={() => onSend(activeTab)}
-          className="inline-flex items-center gap-2 rounded-lg bg-[#0000B3] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#000099]"
+          className="inline-flex items-center gap-2 rounded-lg bg-white px-4 py-2 text-xs font-semibold text-black transition-colors hover:bg-neutral-200"
         >
-          <Send size={15} />
+          <Send size={13} />
           Send Now
         </button>
       </div>

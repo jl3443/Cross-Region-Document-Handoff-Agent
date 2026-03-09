@@ -19,23 +19,23 @@ interface BadgeProps {
 }
 
 const variantClasses: Record<BadgeVariant, string> = {
-  default: 'bg-slate-100 text-slate-700',
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-amber-100 text-amber-700',
-  low: 'bg-slate-100 text-slate-500',
-  resolved: 'bg-green-100 text-green-700',
-  accent: 'bg-[#0000B3]/10 text-[#0000B3]',
-  muted: 'bg-slate-100 text-slate-600',
-  warning: 'bg-amber-100 text-amber-700',
-  destructive: 'bg-red-600 text-white',
+  default:     'bg-neutral-500/10 text-neutral-400 ring-1 ring-neutral-500/20',
+  critical:    'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
+  high:        'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20',
+  medium:      'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
+  low:         'bg-neutral-500/10 text-neutral-500 ring-1 ring-neutral-500/20',
+  resolved:    'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20',
+  accent:      'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20',
+  muted:       'bg-neutral-800 text-neutral-400 ring-1 ring-neutral-700',
+  warning:     'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
+  destructive: 'bg-red-500 text-white',
 };
 
 export function Badge({ variant = 'default', children, className }: BadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex items-center rounded-md px-2 py-0.5 text-[10px] font-semibold',
         variantClasses[variant],
         className
       )}
