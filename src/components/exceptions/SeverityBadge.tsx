@@ -14,22 +14,22 @@ const config: Record<
   critical: {
     icon: ShieldAlert,
     label: 'Critical',
-    classes: 'bg-red-100 text-red-700',
+    classes: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
   },
   high: {
     icon: AlertTriangle,
     label: 'High',
-    classes: 'bg-orange-100 text-orange-700',
+    classes: 'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20',
   },
   medium: {
     icon: AlertCircle,
     label: 'Medium',
-    classes: 'bg-amber-100 text-amber-700',
+    classes: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
   },
   low: {
     icon: Info,
     label: 'Low',
-    classes: 'bg-slate-100 text-slate-500',
+    classes: 'bg-neutral-500/10 text-neutral-400 ring-1 ring-neutral-500/20',
   },
 };
 
@@ -39,7 +39,7 @@ export function SeverityBadge({ severity, className }: SeverityBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium',
+        'inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-medium',
         classes,
         className
       )}

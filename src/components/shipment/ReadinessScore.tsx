@@ -6,9 +6,9 @@ interface ReadinessScoreProps {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 70) return { stroke: 'stroke-green-500', text: 'text-green-600' };
-  if (score >= 40) return { stroke: 'stroke-amber-500', text: 'text-amber-600' };
-  return { stroke: 'stroke-red-500', text: 'text-red-600' };
+  if (score >= 70) return { stroke: 'stroke-emerald-500', text: 'text-emerald-400' };
+  if (score >= 40) return { stroke: 'stroke-amber-500', text: 'text-amber-400' };
+  return { stroke: 'stroke-red-500', text: 'text-red-400' };
 }
 
 export function ReadinessScore({ score, label }: ReadinessScoreProps) {
@@ -25,7 +25,7 @@ export function ReadinessScore({ score, label }: ReadinessScoreProps) {
   const statusLabel = clamped >= 100 ? 'Ready' : clamped >= 70 ? 'On Track' : clamped >= 40 ? 'At Risk' : 'Blocked';
 
   return (
-    <div className="flex flex-col items-center rounded-lg border border-slate-200 bg-white px-4 py-3">
+    <div className="flex flex-col items-center rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-4">
       {/* SVG ring */}
       <div className="relative" style={{ width: size, height: size }}>
         <svg
@@ -42,7 +42,7 @@ export function ReadinessScore({ score, label }: ReadinessScoreProps) {
             fill="none"
             stroke="currentColor"
             strokeWidth={strokeWidth}
-            className="text-slate-100"
+            className="text-neutral-800"
           />
           {/* Progress ring */}
           <circle
@@ -67,7 +67,7 @@ export function ReadinessScore({ score, label }: ReadinessScoreProps) {
 
       {/* Below label */}
       {label && (
-        <p className="mt-2 text-center text-xs text-slate-500">{label}</p>
+        <p className="mt-2 text-center text-xs text-neutral-500">{label}</p>
       )}
     </div>
   );

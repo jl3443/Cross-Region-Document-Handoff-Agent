@@ -176,7 +176,7 @@ export function AiChatPanel({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-40 bg-black/20"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
             onClick={onClose}
           />
 
@@ -187,19 +187,19 @@ export function AiChatPanel({
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed inset-y-0 right-0 z-50 flex w-[420px] flex-col border-l border-slate-200 bg-white shadow-xl"
+            className="fixed inset-y-0 right-0 z-50 flex w-[420px] flex-col border-l border-neutral-800 bg-neutral-950 shadow-2xl"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
-              <div className="flex items-center gap-2">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0000B3]/10">
-                  <Sparkles className="h-4 w-4 text-[#0000B3]" />
+            <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-500/10 ring-1 ring-blue-500/20">
+                  <Sparkles className="h-4 w-4 text-blue-400" />
                 </div>
-                <h2 className="text-base font-semibold text-slate-800">AI Assistant</h2>
+                <h2 className="text-base font-semibold text-white">AI Assistant</h2>
               </div>
               <button
                 onClick={onClose}
-                className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+                className="rounded-lg p-2 text-neutral-500 transition-colors hover:bg-neutral-800 hover:text-neutral-300"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -210,8 +210,8 @@ export function AiChatPanel({
               {messages.length === 0 && !isThinking ? (
                 <div className="flex flex-col gap-3">
                   <div className="flex items-center gap-2 mb-1">
-                    <Sparkles className="h-3.5 w-3.5 text-[#0000B3]/60" />
-                    <p className="text-xs text-slate-500">
+                    <Sparkles className="h-3.5 w-3.5 text-blue-500/60" />
+                    <p className="text-xs text-neutral-500">
                       Ask me anything about this shipment, or try a suggestion:
                     </p>
                   </div>
@@ -220,7 +220,7 @@ export function AiChatPanel({
                       <button
                         key={suggestion}
                         onClick={() => handleSend(suggestion)}
-                        className="w-full text-left px-3 py-2.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-lg text-xs text-slate-700 transition-colors"
+                        className="w-full text-left px-3 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 rounded-lg text-xs text-neutral-300 transition-colors"
                       >
                         {suggestion}
                       </button>
@@ -235,20 +235,20 @@ export function AiChatPanel({
                       className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[85%] rounded-lg px-3 py-2 ${
+                        className={`max-w-[85%] rounded-xl px-3 py-2.5 ${
                           msg.role === 'user'
-                            ? 'bg-[#0000B3] text-white'
-                            : 'bg-slate-100 text-slate-800'
+                            ? 'bg-blue-500 text-white'
+                            : 'bg-neutral-800 text-neutral-200'
                         }`}
                       >
                         <MessageContent text={msg.text} />
                         {msg.role === 'assistant' && msg.actions && msg.actions.length > 0 && (
-                          <div className="mt-2 flex flex-wrap gap-1.5 pt-2 border-t border-slate-200/60">
+                          <div className="mt-2 flex flex-wrap gap-1.5 pt-2 border-t border-neutral-700/60">
                             {msg.actions.map((action) => (
                               <button
                                 key={action.label}
                                 onClick={() => handleAction(action)}
-                                className="rounded-md bg-[#0000B3]/10 px-2.5 py-1 text-xs font-medium text-[#0000B3] hover:bg-[#0000B3]/20 transition-colors"
+                                className="rounded-md bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-400 hover:bg-blue-500/20 transition-colors ring-1 ring-blue-500/20"
                               >
                                 {action.label}
                               </button>
@@ -260,7 +260,7 @@ export function AiChatPanel({
                   ))}
                   {isThinking && (
                     <div className="flex justify-start">
-                      <div className="bg-slate-100 rounded-lg px-3 py-2 flex items-center gap-2 text-sm text-slate-500">
+                      <div className="bg-neutral-800 rounded-xl px-3 py-2.5 flex items-center gap-2 text-sm text-neutral-400">
                         <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         <span>Thinking...</span>
                       </div>
@@ -272,14 +272,14 @@ export function AiChatPanel({
             </div>
 
             {/* Input area */}
-            <div className="border-t border-slate-200 p-3">
+            <div className="border-t border-neutral-800 p-4">
               {messages.length > 0 && (
-                <div className="flex flex-wrap gap-1.5 mb-2">
+                <div className="flex flex-wrap gap-1.5 mb-3">
                   {suggestions.slice(0, 2).map((s) => (
                     <button
                       key={s}
                       onClick={() => handleSend(s)}
-                      className="px-2 py-1 bg-slate-100 rounded-md text-[10px] text-slate-600 hover:bg-slate-200 transition-colors"
+                      className="px-2 py-1 bg-neutral-800 rounded-md text-[10px] text-neutral-400 hover:bg-neutral-700 transition-colors"
                     >
                       {s}
                     </button>
@@ -295,14 +295,14 @@ export function AiChatPanel({
                   onInput={handleAutoResize}
                   placeholder="Ask about this shipment..."
                   rows={1}
-                  className="flex-1 resize-none rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#0000B3] focus:outline-none focus:ring-1 focus:ring-[#0000B3]/20 transition-colors"
+                  className="flex-1 resize-none rounded-lg border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-white placeholder:text-neutral-500 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500/20 transition-colors"
                   style={{ minHeight: '36px', maxHeight: '120px' }}
                   disabled={isThinking}
                 />
                 <button
                   onClick={() => handleSend()}
                   disabled={!inputValue.trim() || isThinking}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-[#0000B3] text-white hover:bg-[#0000CC] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500 text-white hover:bg-blue-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <Send className="h-4 w-4" />
                 </button>

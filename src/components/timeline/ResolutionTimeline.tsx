@@ -5,19 +5,19 @@ interface ResolutionTimelineProps {
 }
 
 const dotColorMap: Record<TimelineEvent['type'], string> = {
-  system: 'bg-[#0000B3]',
+  system: 'bg-blue-500',
   warning: 'bg-amber-500',
   critical: 'bg-red-500',
-  positive: 'bg-green-500',
-  info: 'bg-slate-400',
+  positive: 'bg-emerald-500',
+  info: 'bg-neutral-500',
 };
 
 const dotRingMap: Record<TimelineEvent['type'], string> = {
-  system: 'ring-[#0000B3]/20',
+  system: 'ring-blue-500/20',
   warning: 'ring-amber-500/20',
   critical: 'ring-red-500/20',
-  positive: 'ring-green-500/20',
-  info: 'ring-slate-400/20',
+  positive: 'ring-emerald-500/20',
+  info: 'ring-neutral-500/20',
 };
 
 function formatTimestamp(raw: string): string {
@@ -46,11 +46,11 @@ export function ResolutionTimeline({ events }: ResolutionTimelineProps) {
         return (
           <div
             key={event.id}
-            className="group relative flex gap-4 rounded-md px-2 py-1 transition-colors hover:bg-slate-50"
+            className="group relative flex gap-4 rounded-lg px-2 py-1.5 transition-colors hover:bg-neutral-800/30"
           >
             {/* Timestamp column */}
             <div className="w-20 shrink-0 pt-0.5 text-right">
-              <span className="text-xs font-medium text-slate-400">
+              <span className="text-xs font-medium text-neutral-500">
                 {formatTimestamp(event.timestamp)}
               </span>
             </div>
@@ -61,13 +61,13 @@ export function ResolutionTimeline({ events }: ResolutionTimelineProps) {
                 className={`z-10 h-3 w-3 shrink-0 rounded-full ring-4 ${dotColorMap[event.type]} ${dotRingMap[event.type]}`}
               />
               {!isLast && (
-                <div className="w-0.5 flex-1 bg-slate-200" style={{ minHeight: 20 }} />
+                <div className="w-0.5 flex-1 bg-neutral-800" style={{ minHeight: 20 }} />
               )}
             </div>
 
             {/* Description column */}
             <div className="flex-1 pb-3 pt-0">
-              <p className="text-sm leading-snug text-slate-700 group-hover:text-slate-900">
+              <p className="text-sm leading-snug text-neutral-300 group-hover:text-white">
                 {event.description}
               </p>
             </div>

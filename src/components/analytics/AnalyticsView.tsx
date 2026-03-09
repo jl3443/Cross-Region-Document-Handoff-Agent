@@ -24,12 +24,12 @@ import { chartColors, tooltipStyle, axisStyle } from '../../lib/chart-config';
 function PieLegend({ data }: { data: Array<{ name: string; value: number; color: string }> }) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
   return (
-    <div className="mt-3 flex flex-wrap justify-center gap-x-4 gap-y-1.5">
+    <div className="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2">
       {data.map((entry) => (
-        <div key={entry.name} className="flex items-center gap-1.5">
+        <div key={entry.name} className="flex items-center gap-2">
           <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: entry.color }} />
-          <span className="text-[11px] text-slate-600">
-            {entry.name} <span className="font-medium text-slate-800">{Math.round((entry.value / total) * 100)}%</span>
+          <span className="text-[11px] text-neutral-400">
+            {entry.name} <span className="font-semibold text-white">{Math.round((entry.value / total) * 100)}%</span>
           </span>
         </div>
       ))}
@@ -43,15 +43,15 @@ export function AnalyticsView() {
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Row 1: 2 charts */}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {/* Document Aging Analysis */}
         <Card title="Document Aging Analysis">
-          <div style={{ width: '100%', height: 260 }}>
+          <div style={{ width: '100%', height: 280 }}>
             <ResponsiveContainer>
               <BarChart data={agingData} margin={{ left: -10, right: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
                 <XAxis
                   dataKey="bucket"
                   tick={axisStyle}
@@ -69,7 +69,7 @@ export function AnalyticsView() {
                 <Legend
                   iconType="circle"
                   iconSize={8}
-                  wrapperStyle={{ fontSize: '11px', fontFamily: 'Geist, system-ui, sans-serif' }}
+                  wrapperStyle={{ fontSize: '11px', fontFamily: 'Geist, system-ui, sans-serif', color: '#a3a3a3' }}
                 />
                 <Bar dataKey="count" name="Documents" radius={[4, 4, 0, 0]} barSize={28}>
                   {agingData.map((_entry, index) => (
@@ -83,15 +83,15 @@ export function AnalyticsView() {
 
         {/* Exception Breakdown (Donut) */}
         <Card title="Exception Breakdown by Type">
-          <div style={{ width: '100%', height: 220 }}>
+          <div style={{ width: '100%', height: 240 }}>
             <ResponsiveContainer>
               <PieChart>
                 <Pie
                   data={exceptionBreakdown}
                   cx="50%"
                   cy="50%"
-                  innerRadius={65}
-                  outerRadius={95}
+                  innerRadius={70}
+                  outerRadius={100}
                   paddingAngle={3}
                   dataKey="value"
                   stroke="none"
@@ -112,13 +112,13 @@ export function AnalyticsView() {
       </div>
 
       {/* Row 2: 3 charts */}
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Monthly Shipment Volume */}
         <Card title="Monthly Shipment Volume">
-          <div style={{ width: '100%', height: 260 }}>
+          <div style={{ width: '100%', height: 280 }}>
             <ResponsiveContainer>
               <BarChart data={monthlyVolume} margin={{ left: -10, right: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
                 <XAxis
                   dataKey="month"
                   tick={axisStyle}
@@ -130,7 +130,7 @@ export function AnalyticsView() {
                 <Legend
                   iconType="circle"
                   iconSize={8}
-                  wrapperStyle={{ fontSize: '11px', fontFamily: 'Geist, system-ui, sans-serif' }}
+                  wrapperStyle={{ fontSize: '11px', fontFamily: 'Geist, system-ui, sans-serif', color: '#a3a3a3' }}
                 />
                 <Bar
                   dataKey="shipments"
@@ -153,15 +153,15 @@ export function AnalyticsView() {
 
         {/* Carrier Performance (Donut) */}
         <Card title="Carrier On-Time Performance">
-          <div style={{ width: '100%', height: 220 }} className="relative">
+          <div style={{ width: '100%', height: 240 }} className="relative">
             <ResponsiveContainer>
               <PieChart>
                 <Pie
                   data={carrierPerformance}
                   cx="50%"
                   cy="50%"
-                  innerRadius={65}
-                  outerRadius={95}
+                  innerRadius={70}
+                  outerRadius={100}
                   paddingAngle={3}
                   dataKey="value"
                   stroke="none"
@@ -179,8 +179,8 @@ export function AnalyticsView() {
             {/* Center label */}
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <div className="text-center">
-                <p className="text-2xl font-bold text-slate-900">{avgCarrierPerformance}%</p>
-                <p className="text-[10px] font-medium text-slate-500">Avg On-Time</p>
+                <p className="text-3xl font-bold text-white">{avgCarrierPerformance}%</p>
+                <p className="text-[11px] font-medium text-neutral-500">Avg On-Time</p>
               </div>
             </div>
           </div>
@@ -189,10 +189,10 @@ export function AnalyticsView() {
 
         {/* Resolution Time by Severity */}
         <Card title="Avg Resolution Time (Hours)">
-          <div style={{ width: '100%', height: 260 }}>
+          <div style={{ width: '100%', height: 280 }}>
             <ResponsiveContainer>
               <BarChart data={resolutionBySeverity} layout="vertical" margin={{ left: 10, right: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#262626" horizontal={false} />
                 <XAxis
                   type="number"
                   tick={axisStyle}

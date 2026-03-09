@@ -296,7 +296,7 @@ export default function App() {
           />
         )}
 
-        <div className="flex-1 overflow-y-auto bg-slate-50 p-4">
+        <div className="flex-1 overflow-y-auto bg-[#0a0a0a] p-6">
           {/* DASHBOARD */}
           {activeView === 'dashboard' && (
             <DashboardView />
@@ -309,26 +309,26 @@ export default function App() {
 
           {/* OVERVIEW — Command Center */}
           {activeView === 'overview' && (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {/* Hazmat Classification Banner */}
               {scenario.hazmat && (
-                <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-2.5 flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-100">
-                    <Flame className="h-4 w-4 text-orange-600" />
+                <div className="rounded-xl border border-orange-500/20 bg-orange-500/10 px-5 py-3 flex items-center gap-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-500/20 ring-1 ring-orange-500/30">
+                    <Flame className="h-5 w-5 text-orange-400" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold uppercase tracking-wide text-orange-700">
+                      <span className="text-xs font-bold uppercase tracking-wide text-orange-400">
                         Dangerous Goods Shipment
                       </span>
-                      <span className="rounded-full bg-orange-200 px-2.5 py-0.5 text-[10px] font-bold text-orange-800">
+                      <span className="rounded-full bg-orange-500/20 px-2.5 py-0.5 text-[10px] font-bold text-orange-300 ring-1 ring-orange-500/30">
                         {scenario.hazmat.dgClass}
                       </span>
                     </div>
-                    <p className="mt-0.5 text-xs text-slate-600">
+                    <p className="mt-0.5 text-xs text-neutral-300">
                       UN {scenario.hazmat.unNumber} &mdash; {scenario.hazmat.properShippingName}
                     </p>
-                    <p className="mt-0.5 text-[10px] text-slate-500">
+                    <p className="mt-0.5 text-[10px] text-neutral-500">
                       Requires MSDS + DG Declaration + Trade Compliance sign-off before handoff
                     </p>
                   </div>
@@ -336,24 +336,24 @@ export default function App() {
               )}
 
               {/* Row 1: Compact Command Header */}
-              <div className="rounded-lg border border-slate-200 bg-white px-4 py-3 shadow-sm">
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 px-5 py-4">
                 <div className="flex items-center gap-4">
                   {/* Shipment ID + Status */}
-                  <div className="flex items-center gap-2">
-                    <code className="text-sm font-bold font-mono text-slate-900">{scenario.shipment.id}</code>
+                  <div className="flex items-center gap-3">
+                    <code className="text-sm font-bold font-mono text-white">{scenario.shipment.id}</code>
                     <span
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold ring-1 ${
                         scenario.shipment.status === 'on-track'
-                          ? 'bg-green-100 text-green-700'
+                          ? 'bg-emerald-500/10 text-emerald-400 ring-emerald-500/20'
                           : scenario.shipment.status === 'at-risk'
-                          ? 'bg-amber-100 text-amber-700'
-                          : 'bg-red-100 text-red-700'
+                          ? 'bg-amber-500/10 text-amber-400 ring-amber-500/20'
+                          : 'bg-red-500/10 text-red-400 ring-red-500/20'
                       }`}
                     >
                       <span
                         className={`h-1.5 w-1.5 rounded-full ${
                           scenario.shipment.status === 'on-track'
-                            ? 'bg-green-500'
+                            ? 'bg-emerald-500'
                             : scenario.shipment.status === 'at-risk'
                             ? 'bg-amber-500'
                             : 'bg-red-500'
@@ -367,75 +367,77 @@ export default function App() {
                     </span>
                   </div>
 
-                  <div className="h-6 w-px bg-slate-200" />
+                  <div className="h-6 w-px bg-neutral-800" />
 
                   {/* Route */}
-                  <div className="flex items-center gap-2 text-xs text-slate-600">
-                    <span className="font-medium text-slate-800">{scenario.shipment.origin.port}</span>
-                    <ArrowRight className="h-3 w-3 text-slate-400" />
-                    <span className="font-medium text-slate-800">{scenario.shipment.destination.port}</span>
-                    <span className="text-slate-400">|</span>
+                  <div className="flex items-center gap-2 text-xs text-neutral-400">
+                    <span className="font-medium text-white">{scenario.shipment.origin.port}</span>
+                    <ArrowRight className="h-3 w-3 text-neutral-600" />
+                    <span className="font-medium text-white">{scenario.shipment.destination.port}</span>
+                    <span className="text-neutral-600">|</span>
                     <span>{scenario.shipment.carrier} / {scenario.shipment.vessel} / {scenario.shipment.voyage}</span>
                   </div>
 
-                  <div className="ml-auto flex items-center gap-4">
+                  <div className="ml-auto flex items-center gap-6">
                     {/* Cutoff */}
-                    <div className="flex items-center gap-1.5">
-                      <span className={`text-lg font-bold tabular-nums ${getCutoffColor(scenario.shipment.cutoffHours)}`}>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xl font-bold tabular-nums ${
+                        scenario.shipment.cutoffHours < 8 ? 'text-red-400' : scenario.shipment.cutoffHours < 24 ? 'text-amber-400' : 'text-white'
+                      }`}>
                         {formatCountdown(scenario.shipment.cutoffHours)}
                       </span>
-                      <span className="text-[10px] text-slate-500 uppercase">to cutoff</span>
+                      <span className="text-[10px] text-neutral-500 uppercase">to cutoff</span>
                     </div>
 
-                    <div className="h-6 w-px bg-slate-200" />
+                    <div className="h-6 w-px bg-neutral-800" />
 
                     {/* Readiness */}
                     <div className="flex items-center gap-2">
-                      <span className={`text-lg font-bold tabular-nums ${
-                        adjustedReadiness >= 90 ? 'text-green-600' : adjustedReadiness >= 70 ? 'text-amber-600' : 'text-red-600'
+                      <span className={`text-xl font-bold tabular-nums ${
+                        adjustedReadiness >= 90 ? 'text-emerald-400' : adjustedReadiness >= 70 ? 'text-amber-400' : 'text-red-400'
                       }`}>
                         {adjustedReadiness}%
                       </span>
-                      <span className="text-[10px] text-slate-500 uppercase">ready</span>
+                      <span className="text-[10px] text-neutral-500 uppercase">ready</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Row 2: Document Readiness + Matching */}
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-8 space-y-2">
+              <div className="grid grid-cols-12 gap-4">
+                <div className="col-span-8 space-y-4">
                   <RequiredDocsChecklist documents={scenario.documents} laneRequirements={scenario.laneRequirements} />
                   <DocumentUploadZone compact onUploadComplete={() => showToast('Document processed. Matching updated.', 'success')} />
                 </div>
-                <div className="col-span-4 space-y-2">
+                <div className="col-span-4 space-y-4">
                   <MatchingSummaryCard summary={scenario.matchingSummary} />
-                  <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Gate Check</p>
+                  <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">Gate Check</p>
                     <GateCheck gates={gates} />
                   </div>
                 </div>
               </div>
 
               {/* Row 3: Exceptions + Quick Actions + Mini Timeline */}
-              <div className="grid grid-cols-12 gap-2">
+              <div className="grid grid-cols-12 gap-4">
                 {/* Active Exceptions */}
                 <div className="col-span-5">
-                  <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">
+                  <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-3">
                       Active Exceptions
                     </p>
                     <div className="space-y-2">
                       {exceptions.filter((e) => e.status !== 'resolved').length === 0 ? (
                         <div className="text-center py-6">
-                          <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center mx-auto mb-2">
-                            <CheckCircle2 className="w-5 h-5 text-green-500" />
+                          <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-2 ring-1 ring-emerald-500/20">
+                            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                           </div>
-                          <p className="text-sm font-medium text-green-700">All exceptions resolved</p>
-                          <p className="text-xs text-slate-500 mt-1">Document handoff pack is ready</p>
+                          <p className="text-sm font-medium text-emerald-400">All exceptions resolved</p>
+                          <p className="text-xs text-neutral-500 mt-1">Document handoff pack is ready</p>
                           {scenario.hazmat && !tradeSignOff ? (
                             <button
-                              className="mt-3 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 transition-colors inline-flex items-center gap-1.5"
+                              className="mt-3 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-purple-500 hover:bg-purple-600 transition-colors inline-flex items-center gap-1.5"
                               onClick={() => setTradeSignOff(true)}
                             >
                               <ShieldCheck className="w-3.5 h-3.5" />
@@ -443,7 +445,7 @@ export default function App() {
                             </button>
                           ) : (
                             <button
-                              className="mt-3 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-green-600 hover:bg-green-700 transition-colors inline-flex items-center gap-1.5"
+                              className="mt-3 px-3 py-1.5 rounded-lg text-xs font-medium text-white bg-emerald-500 hover:bg-emerald-600 transition-colors inline-flex items-center gap-1.5"
                               onClick={() => setShowDocPack(true)}
                             >
                               <Package className="w-3.5 h-3.5" />
@@ -451,12 +453,12 @@ export default function App() {
                             </button>
                           )}
                           {tradeSignOff && scenario.hazmat && (
-                            <div className="mt-2 rounded-md bg-purple-50 border border-purple-200 px-3 py-2 text-left">
+                            <div className="mt-2 rounded-lg bg-purple-500/10 border border-purple-500/20 px-3 py-2 text-left">
                               <div className="flex items-center gap-1.5 mb-1">
-                                <ShieldCheck className="w-3.5 h-3.5 text-purple-600" />
-                                <span className="text-[11px] font-semibold uppercase text-purple-600">Trade Compliance Confirmed</span>
+                                <ShieldCheck className="w-3.5 h-3.5 text-purple-400" />
+                                <span className="text-[11px] font-semibold uppercase text-purple-400">Trade Compliance Confirmed</span>
                               </div>
-                              <p className="text-[11px] text-slate-600">DG Class 3 documentation reviewed and approved. MSDS, DG Declaration, and IMDG compliance verified.</p>
+                              <p className="text-[11px] text-neutral-400">DG Class 3 documentation reviewed and approved. MSDS, DG Declaration, and IMDG compliance verified.</p>
                             </div>
                           )}
                         </div>
@@ -467,36 +469,36 @@ export default function App() {
                           .map((exc) => (
                             <button
                               key={exc.id}
-                              className="w-full text-left p-2.5 rounded-md border border-slate-200 hover:border-slate-300 hover:shadow-sm transition-all"
+                              className="w-full text-left p-3 rounded-lg border border-neutral-800 hover:border-neutral-700 hover:bg-neutral-800/50 transition-all"
                               onClick={() => {
                                 setActiveView('exceptions');
                                 setSelectedExceptionId(exc.id);
                               }}
                             >
                               <div className="flex items-center justify-between">
-                                <span className="text-xs font-medium text-slate-900">{exc.documentName}</span>
+                                <span className="text-xs font-medium text-white">{exc.documentName}</span>
                                 <span
-                                  className={`text-[10px] font-medium px-2 py-0.5 rounded-full ${
+                                  className={`text-[10px] font-medium px-2 py-0.5 rounded-md ring-1 ${
                                     exc.severity === 'critical'
-                                      ? 'bg-red-100 text-red-700'
+                                      ? 'bg-red-500/10 text-red-400 ring-red-500/20'
                                       : exc.severity === 'high'
-                                      ? 'bg-orange-100 text-orange-700'
+                                      ? 'bg-orange-500/10 text-orange-400 ring-orange-500/20'
                                       : exc.severity === 'medium'
-                                      ? 'bg-amber-100 text-amber-700'
-                                      : 'bg-slate-100 text-slate-600'
+                                      ? 'bg-amber-500/10 text-amber-400 ring-amber-500/20'
+                                      : 'bg-neutral-500/10 text-neutral-400 ring-neutral-500/20'
                                   }`}
                                 >
                                   {exc.severity}
                                 </span>
                               </div>
-                              <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{exc.summary}</p>
+                              <p className="text-[11px] text-neutral-500 mt-1 line-clamp-1">{exc.summary}</p>
                             </button>
                           ))
                       )}
                     </div>
                     {exceptions.filter((e) => e.status !== 'resolved').length > 0 && (
                       <button
-                        className="mt-3 w-full text-center text-xs font-medium py-1.5 rounded-md border border-slate-200 text-[#0000B3] hover:bg-slate-50 transition-colors"
+                        className="mt-3 w-full text-center text-xs font-medium py-2 rounded-lg border border-neutral-700 text-blue-400 hover:bg-neutral-800 transition-colors"
                         onClick={() => setActiveView('exceptions')}
                       >
                         View All Exceptions
@@ -507,12 +509,12 @@ export default function App() {
 
                 {/* Quick Actions */}
                 <div className="col-span-4">
-                  <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-4">
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">
+                  <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-3">
                       Quick Actions
                     </p>
                     {quickActions.length === 0 ? (
-                      <p className="text-xs text-slate-400 text-center py-6">No pending actions</p>
+                      <p className="text-xs text-neutral-600 text-center py-6">No pending actions</p>
                     ) : (
                       <div className="space-y-2">
                         {quickActions.map(({ exception: exc, action }) => {
@@ -521,17 +523,17 @@ export default function App() {
                           return (
                             <div
                               key={`${exc.id}-${action.id}`}
-                              className={`rounded-md border p-2.5 ${cfg.border} ${cfg.bg}`}
+                              className="rounded-lg border border-neutral-800 bg-neutral-800/30 p-3"
                             >
                               <div className="flex items-start gap-2">
-                                <Icon className={`h-3.5 w-3.5 mt-0.5 shrink-0 ${cfg.accent}`} />
+                                <Icon className="h-4 w-4 mt-0.5 shrink-0 text-blue-400" />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium text-slate-800 truncate">{action.label}</p>
-                                  <p className="text-[10px] text-slate-500 mt-0.5">{exc.documentName} → {action.target}</p>
+                                  <p className="text-xs font-medium text-white truncate">{action.label}</p>
+                                  <p className="text-[10px] text-neutral-500 mt-0.5">{exc.documentName} → {action.target}</p>
                                 </div>
                                 <button
                                   onClick={() => handleActionForException(exc, action.id)}
-                                  className={`shrink-0 rounded px-2 py-1 text-[10px] font-medium ${cfg.btnBg} ${cfg.btnText}`}
+                                  className="shrink-0 rounded-md px-2.5 py-1 text-[10px] font-medium bg-blue-500 text-white hover:bg-blue-600 transition-colors"
                                 >
                                   Execute
                                 </button>
@@ -546,12 +548,12 @@ export default function App() {
 
                 {/* Mini Timeline */}
                 <div className="col-span-3">
-                  <div className="rounded-lg border border-slate-200 bg-white shadow-sm p-4" style={{ maxHeight: 280 }}>
-                    <p className="text-xs font-medium uppercase tracking-wide text-slate-500 mb-3">
+                  <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4" style={{ maxHeight: 300 }}>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-neutral-500 mb-3">
                       Recent Events
                     </p>
                     {scenario.globalTimeline.length === 0 ? (
-                      <p className="text-xs text-slate-400 text-center py-6">No events yet</p>
+                      <p className="text-xs text-neutral-600 text-center py-6">No events yet</p>
                     ) : (
                       <div className="overflow-y-auto" style={{ maxHeight: 220 }}>
                         <ResolutionTimeline events={scenario.globalTimeline.slice(-6)} />
@@ -565,34 +567,34 @@ export default function App() {
 
           {/* EXCEPTIONS */}
           {activeView === 'exceptions' && (
-            <div className="space-y-3">
-              <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2">
-                  <h3 className="text-sm font-semibold text-slate-800">Exception Workbench</h3>
+            <div className="space-y-4">
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+                <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3">
+                  <h3 className="text-sm font-semibold text-white">Exception Workbench</h3>
                   <div className="flex items-center gap-5">
                     <div className="text-xs">
-                      <span className="text-slate-500">Total:</span>{' '}
-                      <span className="font-semibold">{exceptions.length}</span>
+                      <span className="text-neutral-500">Total:</span>{' '}
+                      <span className="font-semibold text-white">{exceptions.length}</span>
                     </div>
                     <div className="text-xs">
-                      <span className="text-slate-500">Critical:</span>{' '}
-                      <span className="font-semibold text-red-600">
+                      <span className="text-neutral-500">Critical:</span>{' '}
+                      <span className="font-semibold text-red-400">
                         {exceptions.filter((e) => e.severity === 'critical' && e.status !== 'resolved').length}
                       </span>
                     </div>
                     <div className="text-xs">
-                      <span className="text-slate-500">High:</span>{' '}
-                      <span className="font-semibold text-orange-600">
+                      <span className="text-neutral-500">High:</span>{' '}
+                      <span className="font-semibold text-orange-400">
                         {exceptions.filter((e) => e.severity === 'high' && e.status !== 'resolved').length}
                       </span>
                     </div>
                     <div className="text-xs">
-                      <span className="text-slate-500">Blocking:</span>{' '}
-                      <span className="font-semibold text-red-600">{openBlockingCount}</span>
+                      <span className="text-neutral-500">Blocking:</span>{' '}
+                      <span className="font-semibold text-red-400">{openBlockingCount}</span>
                     </div>
                     <div className="text-xs">
-                      <span className="text-slate-500">Resolved:</span>{' '}
-                      <span className="font-semibold text-green-600">
+                      <span className="text-neutral-500">Resolved:</span>{' '}
+                      <span className="font-semibold text-emerald-400">
                         {exceptions.filter((e) => e.status === 'resolved').length}
                       </span>
                     </div>
@@ -606,9 +608,9 @@ export default function App() {
               </div>
 
               {scenario.globalTimeline.length > 0 && (
-                <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-                  <div className="border-b border-slate-200 px-4 py-2">
-                    <h3 className="text-sm font-semibold text-slate-800">Resolution History</h3>
+                <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+                  <div className="border-b border-neutral-800 px-5 py-3">
+                    <h3 className="text-sm font-semibold text-white">Resolution History</h3>
                   </div>
                   <div className="p-4">
                     <ResolutionTimeline events={scenario.globalTimeline} />
@@ -620,12 +622,12 @@ export default function App() {
 
           {/* DOCUMENTS */}
           {activeView === 'documents' && (
-            <div className="space-y-3">
-              <div className="grid grid-cols-12 gap-3">
+            <div className="space-y-4">
+              <div className="grid grid-cols-12 gap-4">
                 <div className="col-span-8">
                   <RequiredDocsChecklist documents={scenario.documents} laneRequirements={scenario.laneRequirements} />
                 </div>
-                <div className="col-span-4 space-y-3">
+                <div className="col-span-4 space-y-4">
                   <MatchingSummaryCard summary={scenario.matchingSummary} />
                   <div className="flex justify-center">
                     <ReadinessScore
@@ -636,8 +638,8 @@ export default function App() {
                 </div>
               </div>
               <DocumentUploadZone onUploadComplete={() => showToast('Document processed. Matching updated.', 'success')} />
-              <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Gate Check</p>
+              <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
+                <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">Gate Check</p>
                 <GateCheck gates={gates} />
               </div>
             </div>
@@ -645,11 +647,11 @@ export default function App() {
 
           {/* COMMUNICATIONS */}
           {activeView === 'communications' && (
-            <div className="space-y-3">
-              <p className="text-sm text-slate-500">
+            <div className="space-y-4">
+              <p className="text-sm text-neutral-400">
                 AI-generated communications for active exceptions. Review before sending.
               </p>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {exceptions
                   .filter((e) => e.status !== 'resolved')
                   .flatMap((exc) =>
@@ -657,17 +659,17 @@ export default function App() {
                       <div key={`${exc.id}-${i}`}>
                         <div className="flex items-center gap-2 mb-2">
                           <span
-                            className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                            className={`text-xs font-medium px-2 py-0.5 rounded-md ring-1 ${
                               exc.severity === 'critical'
-                                ? 'bg-red-100 text-red-700'
+                                ? 'bg-red-500/10 text-red-400 ring-red-500/20'
                                 : exc.severity === 'high'
-                                ? 'bg-orange-100 text-orange-700'
-                                : 'bg-amber-100 text-amber-700'
+                                ? 'bg-orange-500/10 text-orange-400 ring-orange-500/20'
+                                : 'bg-amber-500/10 text-amber-400 ring-amber-500/20'
                             }`}
                           >
                             {exc.severity}
                           </span>
-                          <span className="text-xs text-slate-500">
+                          <span className="text-xs text-neutral-500">
                             {exc.id} — {exc.documentName}
                           </span>
                         </div>
@@ -677,7 +679,7 @@ export default function App() {
                   )}
               </div>
               {exceptions.filter((e) => e.status !== 'resolved').length === 0 && (
-                <div className="text-center py-16 text-slate-400">
+                <div className="text-center py-16 text-neutral-500">
                   <p className="text-sm">No active exceptions. All communications resolved.</p>
                 </div>
               )}
@@ -686,33 +688,33 @@ export default function App() {
 
           {/* TIMELINE */}
           {activeView === 'timeline' && (
-            <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2">
-                <h3 className="text-sm font-semibold text-slate-800">Resolution Timeline</h3>
+            <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden">
+              <div className="flex items-center justify-between border-b border-neutral-800 px-5 py-3">
+                <h3 className="text-sm font-semibold text-white">Resolution Timeline</h3>
                 <div className="flex items-center gap-4 text-xs">
-                  <span className="text-slate-500">
-                    <span className="font-semibold text-slate-700">{scenario.globalTimeline.length}</span> events
+                  <span className="text-neutral-500">
+                    <span className="font-semibold text-white">{scenario.globalTimeline.length}</span> events
                   </span>
                   {scenario.globalTimeline.filter((e) => e.type === 'critical').length > 0 && (
-                    <span className="inline-flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-red-500" />
-                      <span className="font-medium text-red-600">
+                      <span className="font-medium text-red-400">
                         {scenario.globalTimeline.filter((e) => e.type === 'critical').length} critical
                       </span>
                     </span>
                   )}
                   {scenario.globalTimeline.filter((e) => e.type === 'warning').length > 0 && (
-                    <span className="inline-flex items-center gap-1">
+                    <span className="inline-flex items-center gap-1.5">
                       <span className="h-2 w-2 rounded-full bg-amber-500" />
-                      <span className="font-medium text-amber-600">
+                      <span className="font-medium text-amber-400">
                         {scenario.globalTimeline.filter((e) => e.type === 'warning').length} warnings
                       </span>
                     </span>
                   )}
                   {scenario.globalTimeline.filter((e) => e.type === 'positive').length > 0 && (
-                    <span className="inline-flex items-center gap-1">
-                      <span className="h-2 w-2 rounded-full bg-green-500" />
-                      <span className="font-medium text-green-600">
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                      <span className="font-medium text-emerald-400">
                         {scenario.globalTimeline.filter((e) => e.type === 'positive').length} resolved
                       </span>
                     </span>

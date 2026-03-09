@@ -13,19 +13,19 @@ interface ExceptionTableProps {
 const typeChipConfig: Record<ExceptionType, { label: string; classes: string }> = {
   'missing-doc': {
     label: 'Missing Doc',
-    classes: 'bg-blue-100 text-blue-700',
+    classes: 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20',
   },
   mismatch: {
     label: 'Mismatch',
-    classes: 'bg-orange-100 text-orange-700',
+    classes: 'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20',
   },
   quality: {
     label: 'Quality',
-    classes: 'bg-amber-100 text-amber-700',
+    classes: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
   },
   'cutoff-risk': {
     label: 'Cutoff Risk',
-    classes: 'bg-red-100 text-red-700',
+    classes: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
   },
 };
 
@@ -36,7 +36,7 @@ export function ExceptionTable({
 }: ExceptionTableProps) {
   if (exceptions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-16 text-neutral-500">
         <Inbox className="mb-3 h-10 w-10" />
         <p className="text-sm font-medium">No exceptions found</p>
         <p className="mt-1 text-xs">All documents are matching as expected.</p>
@@ -48,17 +48,17 @@ export function ExceptionTable({
     <div className="overflow-x-auto">
       <table className="w-full text-left text-sm">
         <thead>
-          <tr className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wide text-slate-500">
-            <th className="px-3 py-2.5">Severity</th>
-            <th className="px-3 py-2.5">ID</th>
-            <th className="px-3 py-2.5">Type</th>
-            <th className="px-3 py-2.5">Document</th>
-            <th className="px-3 py-2.5">Status</th>
-            <th className="px-3 py-2.5">Owner</th>
-            <th className="px-3 py-2.5">Age</th>
-            <th className="px-3 py-2.5">Due</th>
-            <th className="px-3 py-2.5">Blocking</th>
-            <th className="px-3 py-2.5 text-right">Action</th>
+          <tr className="border-b border-neutral-800 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+            <th className="px-4 py-3">Severity</th>
+            <th className="px-4 py-3">ID</th>
+            <th className="px-4 py-3">Type</th>
+            <th className="px-4 py-3">Document</th>
+            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3">Owner</th>
+            <th className="px-4 py-3">Age</th>
+            <th className="px-4 py-3">Due</th>
+            <th className="px-4 py-3">Blocking</th>
+            <th className="px-4 py-3 text-right">Action</th>
           </tr>
         </thead>
         <tbody>
@@ -73,25 +73,25 @@ export function ExceptionTable({
                 key={exc.id}
                 onClick={() => onSelect(exc.id)}
                 className={cn(
-                  'cursor-pointer border-b border-slate-100 transition-colors hover:bg-slate-50',
-                  isSelected && 'border-l-2 border-l-blue-500 bg-blue-50 hover:bg-blue-50'
+                  'cursor-pointer border-b border-neutral-800/50 transition-colors hover:bg-neutral-800/30',
+                  isSelected && 'border-l-2 border-l-blue-500 bg-blue-500/5 hover:bg-blue-500/10'
                 )}
               >
                 {/* Severity */}
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3">
                   <SeverityBadge severity={exc.severity} />
                 </td>
 
                 {/* ID */}
-                <td className="px-3 py-2.5">
-                  <span className="font-mono text-xs text-slate-600">{exc.id}</span>
+                <td className="px-4 py-3">
+                  <span className="font-mono text-xs text-neutral-400">{exc.id}</span>
                 </td>
 
                 {/* Type chip */}
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3">
                   <span
                     className={cn(
-                      'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium',
+                      'inline-flex rounded-md px-2 py-0.5 text-[10px] font-medium',
                       typeChip.classes
                     )}
                   >
@@ -100,24 +100,24 @@ export function ExceptionTable({
                 </td>
 
                 {/* Document name */}
-                <td className="max-w-[180px] truncate px-3 py-2.5 text-slate-700">
+                <td className="max-w-[180px] truncate px-4 py-3 text-white font-medium">
                   {exc.documentName}
                 </td>
 
                 {/* Status */}
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3">
                   <StatusBadge status={exc.status} />
                 </td>
 
                 {/* Owner */}
-                <td className="px-3 py-2.5 text-slate-600">{exc.owner}</td>
+                <td className="px-4 py-3 text-neutral-400">{exc.owner}</td>
 
                 {/* Age */}
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3">
                   <span
                     className={cn(
                       'text-xs font-medium',
-                      ageOverSla ? 'text-red-600' : 'text-slate-600'
+                      ageOverSla ? 'text-red-400' : 'text-neutral-400'
                     )}
                   >
                     {Math.round(exc.ageHours)}h
@@ -125,11 +125,11 @@ export function ExceptionTable({
                 </td>
 
                 {/* Due */}
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3">
                   <span
                     className={cn(
                       'text-xs font-medium',
-                      dueCritical ? 'font-bold text-red-600' : 'text-slate-600'
+                      dueCritical ? 'font-bold text-red-400' : 'text-neutral-400'
                     )}
                   >
                     {formatCountdown(exc.dueInHours)}
@@ -137,22 +137,22 @@ export function ExceptionTable({
                 </td>
 
                 {/* Blocking */}
-                <td className="px-3 py-2.5">
+                <td className="px-4 py-3">
                   {exc.blocking ? (
-                    <span className="text-xs font-semibold text-red-600">Yes</span>
+                    <span className="text-xs font-semibold text-red-400">Yes</span>
                   ) : (
-                    <span className="text-xs text-slate-400">No</span>
+                    <span className="text-xs text-neutral-600">No</span>
                   )}
                 </td>
 
                 {/* Action */}
-                <td className="px-3 py-2.5 text-right">
+                <td className="px-4 py-3 text-right">
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
                       onSelect(exc.id);
                     }}
-                    className="inline-flex items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 hover:text-slate-900"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-neutral-700 bg-neutral-800 px-2.5 py-1 text-xs font-medium text-neutral-300 transition-colors hover:bg-neutral-700 hover:text-white"
                   >
                     <Eye className="h-3.5 w-3.5" />
                     View

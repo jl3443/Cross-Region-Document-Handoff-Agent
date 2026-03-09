@@ -17,34 +17,34 @@ const gateConfig: Record<
   { bg: string; ring: string; icon: React.ElementType; iconClass: string }
 > = {
   passed: {
-    bg: 'bg-green-100',
-    ring: 'ring-green-300',
+    bg: 'bg-emerald-500/10',
+    ring: 'ring-emerald-500/30',
     icon: Check,
-    iconClass: 'text-green-600',
+    iconClass: 'text-emerald-400',
   },
   active: {
-    bg: 'bg-blue-100',
-    ring: 'ring-blue-300',
+    bg: 'bg-blue-500/10',
+    ring: 'ring-blue-500/30',
     icon: MoreHorizontal,
-    iconClass: 'text-blue-600 animate-pulse',
+    iconClass: 'text-blue-400 animate-pulse',
   },
   blocked: {
-    bg: 'bg-red-100',
-    ring: 'ring-red-300',
+    bg: 'bg-red-500/10',
+    ring: 'ring-red-500/30',
     icon: X,
-    iconClass: 'text-red-600',
+    iconClass: 'text-red-400',
   },
   locked: {
-    bg: 'bg-slate-100',
-    ring: 'ring-slate-200',
+    bg: 'bg-neutral-800',
+    ring: 'ring-neutral-700',
     icon: Lock,
-    iconClass: 'text-slate-400',
+    iconClass: 'text-neutral-500',
   },
 };
 
 function connectorColor(leftStatus: GateStatus): string {
-  if (leftStatus === 'passed') return 'bg-green-400';
-  return 'bg-slate-200';
+  if (leftStatus === 'passed') return 'bg-emerald-500';
+  return 'bg-neutral-700';
 }
 
 export function GateCheck({ gates }: GateCheckProps) {
@@ -67,7 +67,7 @@ export function GateCheck({ gates }: GateCheckProps) {
               >
                 <Icon size={16} className={config.iconClass} />
               </div>
-              <span className="mt-1.5 text-center text-[10px] font-medium leading-tight text-slate-500">
+              <span className="mt-1.5 text-center text-[10px] font-medium leading-tight text-neutral-400">
                 {gate.name}
               </span>
             </div>

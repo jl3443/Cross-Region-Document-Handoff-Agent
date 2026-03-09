@@ -69,9 +69,9 @@ interface ToastProps {
 function Toast({ message, type, onClose }: ToastProps) {
   const Icon = type === 'success' ? CheckCircle : Info;
   const bgClass = type === 'success'
-    ? 'bg-green-50 border-green-200 text-green-800'
-    : 'bg-blue-50 border-blue-200 text-blue-800';
-  const iconClass = type === 'success' ? 'text-green-500' : 'text-blue-500';
+    ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+    : 'bg-blue-500/10 border-blue-500/20 text-blue-400';
+  const iconClass = type === 'success' ? 'text-emerald-500' : 'text-blue-500';
 
   return (
     <motion.div
@@ -79,7 +79,7 @@ function Toast({ message, type, onClose }: ToastProps) {
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 80, scale: 0.95 }}
       transition={{ duration: 0.2, ease: 'easeOut' }}
-      className={`flex items-center gap-3 rounded-lg border px-4 py-3 shadow-lg ${bgClass}`}
+      className={`flex items-center gap-3 rounded-xl border px-4 py-3 shadow-2xl backdrop-blur-sm ${bgClass}`}
       style={{ minWidth: 280, maxWidth: 400 }}
     >
       <Icon size={18} className={iconClass} />

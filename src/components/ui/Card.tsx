@@ -2,27 +2,49 @@ import { cn } from '../../lib/utils';
 
 interface CardProps {
   title?: string;
+  subtitle?: string;
+  action?: React.ReactNode;
   children: React.ReactNode;
   className?: string;
   contentClassName?: string;
+  noPadding?: boolean;
 }
 
-export function Card({ title, children, className, contentClassName }: CardProps) {
+export function Card({ 
+  title, 
+  subtitle, 
+  action,
+  children, 
+  className,
+  contentClassName,
+  noPadding = false,
+}: CardProps) {
   return (
-    <div
-      className={cn(
-        'rounded-lg border border-slate-200 bg-white shadow-sm',
-        className
-      )}
-    >
-      {title && (
-        <div className="border-b border-slate-200 px-4 py-2">
-          <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-            {title}
-          </h3>
+    <div className={cn(
+      'rounded-xl border border-neutral-800 bg-neutral-900/50 overflow-hidden',
+      className
+    )}>
+      {(title || action) && (
+        <div className="flex items-center justify-between border-b border-neutral-800 px-4 py-3">
+          <div>
+            {title && (
+              <h3 className="text-sm font-semibold text-white">{title}</h3>
+            )}
+            {subtitle && (
+              <p className="text-xs text-neutral-500 mt-0.5">{subtitle}</p>
+            )}
+          </div>
+          {action && (
+            <div>{action}</div>
+          )}
         </div>
       )}
-      <div className={cn('p-4', contentClassName)}>{children}</div>
+      <div className={cn(
+        !noPadding && 'p-4',
+        contentClassName
+      )}>
+        {children}
+      </div>
     </div>
   );
 }

@@ -67,11 +67,11 @@ export function DocumentUploadZone({ compact, onUploadComplete }: DocumentUpload
 
   if (state === 'done') {
     return (
-      <div className={`rounded-lg border border-green-200 bg-green-50 ${compact ? 'px-3 py-2.5' : 'px-4 py-4'} flex items-center gap-2`}>
-        <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+      <div className={`rounded-xl border border-emerald-500/20 bg-emerald-500/10 ${compact ? 'px-3 py-2.5' : 'px-4 py-4'} flex items-center gap-2`}>
+        <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-green-700">{fileName}</p>
-          <p className="text-[10px] text-green-600">Document received — processing with AI...</p>
+          <p className="text-xs font-medium text-emerald-400">{fileName}</p>
+          <p className="text-[10px] text-emerald-500">Document received — processing with AI...</p>
         </div>
       </div>
     );
@@ -79,16 +79,16 @@ export function DocumentUploadZone({ compact, onUploadComplete }: DocumentUpload
 
   if (state === 'uploading' || state === 'processing') {
     return (
-      <div className={`rounded-lg border border-slate-200 bg-white ${compact ? 'px-3 py-2.5' : 'px-4 py-4'}`}>
+      <div className={`rounded-xl border border-neutral-800 bg-neutral-900/50 ${compact ? 'px-3 py-2.5' : 'px-4 py-4'}`}>
         <div className="flex items-center gap-2 mb-2">
-          <Loader2 className="h-3.5 w-3.5 animate-spin text-[#0000B3]" />
-          <span className="text-xs font-medium text-slate-700">
+          <Loader2 className="h-3.5 w-3.5 animate-spin text-blue-400" />
+          <span className="text-xs font-medium text-white">
             {state === 'uploading' ? `Uploading ${fileName}...` : 'AI processing document...'}
           </span>
         </div>
-        <div className="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-1.5 w-full rounded-full bg-neutral-800 overflow-hidden">
           <div
-            className="h-full rounded-full bg-[#0000B3] transition-all duration-200"
+            className="h-full rounded-full bg-blue-500 transition-all duration-200"
             style={{ width: `${state === 'processing' ? 100 : progress}%` }}
           />
         </div>
@@ -102,17 +102,17 @@ export function DocumentUploadZone({ compact, onUploadComplete }: DocumentUpload
       onDragLeave={() => setIsDragOver(false)}
       onDrop={handleDrop}
       onClick={() => inputRef.current?.click()}
-      className={`rounded-lg border-2 border-dashed cursor-pointer transition-colors ${
+      className={`rounded-xl border-2 border-dashed cursor-pointer transition-colors ${
         isDragOver
-          ? 'border-[#0000B3] bg-blue-50/50'
-          : 'border-slate-300 hover:border-slate-400 hover:bg-slate-50'
+          ? 'border-blue-500 bg-blue-500/5'
+          : 'border-neutral-700 hover:border-neutral-600 hover:bg-neutral-800/30'
       } ${compact ? 'px-3 py-3' : 'px-4 py-6'} flex flex-col items-center`}
     >
-      <Upload className={`text-slate-400 ${compact ? 'h-5 w-5 mb-1' : 'h-6 w-6 mb-2'}`} />
-      <p className={`font-medium text-slate-600 ${compact ? 'text-[11px]' : 'text-xs'}`}>
+      <Upload className={`text-neutral-500 ${compact ? 'h-5 w-5 mb-1' : 'h-6 w-6 mb-2'}`} />
+      <p className={`font-medium text-neutral-300 ${compact ? 'text-[11px]' : 'text-xs'}`}>
         Drop documents here
       </p>
-      <p className="text-[10px] text-slate-400 mt-0.5">Supports PDF, XLSX, images</p>
+      <p className="text-[10px] text-neutral-600 mt-0.5">Supports PDF, XLSX, images</p>
       <input
         ref={inputRef}
         type="file"

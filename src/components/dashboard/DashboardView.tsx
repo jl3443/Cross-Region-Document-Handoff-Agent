@@ -36,50 +36,44 @@ import {
 import { chartColors, tooltipStyle, axisStyle } from '../../lib/chart-config';
 
 const severityColors: Record<string, string> = {
-  critical: 'bg-red-100 text-red-700',
-  high: 'bg-orange-100 text-orange-700',
-  medium: 'bg-amber-100 text-amber-700',
-  low: 'bg-slate-100 text-slate-600',
+  critical: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
+  high: 'bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/20',
+  medium: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
+  low: 'bg-neutral-500/10 text-neutral-400 ring-1 ring-neutral-500/20',
 };
 
 const statusColors: Record<string, string> = {
-  open: 'bg-blue-100 text-blue-700',
-  waiting: 'bg-amber-100 text-amber-700',
-  'in-review': 'bg-purple-100 text-purple-700',
-  escalated: 'bg-red-100 text-red-700',
-  resolved: 'bg-green-100 text-green-700',
+  open: 'bg-blue-500/10 text-blue-400 ring-1 ring-blue-500/20',
+  waiting: 'bg-amber-500/10 text-amber-400 ring-1 ring-amber-500/20',
+  'in-review': 'bg-purple-500/10 text-purple-400 ring-1 ring-purple-500/20',
+  escalated: 'bg-red-500/10 text-red-400 ring-1 ring-red-500/20',
+  resolved: 'bg-emerald-500/10 text-emerald-400 ring-1 ring-emerald-500/20',
 };
 
 export function DashboardView() {
   return (
-    <div className="space-y-2">
+    <div className="space-y-4">
       {/* AI Insights Hero */}
       <AiInsightsCard />
 
       {/* KPI Row 1: 6 main metrics */}
-      <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <KpiCard
           title="Active Shipments"
           value={kpiData.activeShipments}
           icon={Ship}
-          iconBgColor="bg-blue-100"
-          iconColor="text-blue-600"
           trend={kpiTrends.activeShipments}
         />
         <KpiCard
           title="Pending Documents"
           value={kpiData.pendingDocuments}
           icon={FileText}
-          iconBgColor="bg-amber-100"
-          iconColor="text-amber-600"
           trend={kpiTrends.pendingDocuments}
         />
         <KpiCard
           title="Open Exceptions"
           value={kpiData.openExceptions}
           icon={AlertTriangle}
-          iconBgColor="bg-red-100"
-          iconColor="text-red-600"
           trend={kpiTrends.openExceptions}
         />
         <KpiCard
@@ -87,8 +81,6 @@ export function DashboardView() {
           value={kpiData.documentMatchRate}
           suffix="%"
           icon={TrendingUp}
-          iconBgColor="bg-green-100"
-          iconColor="text-green-600"
           trend={kpiTrends.documentMatchRate}
         />
         <KpiCard
@@ -96,8 +88,6 @@ export function DashboardView() {
           value={kpiData.onTimeHandoffRate}
           suffix="%"
           icon={Zap}
-          iconBgColor="bg-purple-100"
-          iconColor="text-purple-600"
           trend={kpiTrends.onTimeHandoffRate}
         />
         <KpiCard
@@ -105,48 +95,40 @@ export function DashboardView() {
           value={kpiData.avgResolutionTime}
           suffix="h"
           icon={Timer}
-          iconBgColor="bg-cyan-100"
-          iconColor="text-cyan-600"
           trend={kpiTrends.avgResolutionTime}
         />
       </div>
 
       {/* KPI Row 2: 3 status metrics */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-3">
         <KpiCard
           title="Shipments At Risk"
           value={kpiData.shipmentsAtRisk}
           icon={AlertCircle}
-          iconBgColor="bg-orange-100"
-          iconColor="text-orange-600"
           trend={kpiTrends.shipmentsAtRisk}
         />
         <KpiCard
           title="Blocked Handoffs"
           value={kpiData.blockedHandoffs}
           icon={Ban}
-          iconBgColor="bg-red-100"
-          iconColor="text-red-600"
           trend={kpiTrends.blockedHandoffs}
         />
         <KpiCard
           title="Completed Today"
           value={kpiData.completedToday}
           icon={CheckCircle2}
-          iconBgColor="bg-green-100"
-          iconColor="text-green-600"
           trend={kpiTrends.completedToday}
         />
       </div>
 
       {/* Charts Row */}
-      <div className="grid grid-cols-1 gap-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         {/* Document Processing Funnel */}
         <Card title="Document Processing Funnel">
-          <div style={{ width: '100%', height: 180 }}>
+          <div style={{ width: '100%', height: 200 }}>
             <ResponsiveContainer>
               <BarChart data={funnelData} layout="vertical" margin={{ left: 10, right: 20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#262626" horizontal={false} />
                 <XAxis type="number" tick={axisStyle} axisLine={false} tickLine={false} />
                 <YAxis
                   type="category"
@@ -169,10 +151,10 @@ export function DashboardView() {
 
         {/* Exception Trend (30-day) */}
         <Card title="Exception Trend (30 Days)">
-          <div style={{ width: '100%', height: 180 }}>
+          <div style={{ width: '100%', height: 200 }}>
             <ResponsiveContainer>
               <LineChart data={exceptionTrendData} margin={{ left: -10, right: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#262626" />
                 <XAxis
                   dataKey="date"
                   tick={axisStyle}
@@ -185,7 +167,7 @@ export function DashboardView() {
                 <Legend
                   iconType="circle"
                   iconSize={8}
-                  wrapperStyle={{ fontSize: '11px', fontFamily: 'Geist, system-ui, sans-serif' }}
+                  wrapperStyle={{ fontSize: '11px', fontFamily: 'Geist, system-ui, sans-serif', color: '#a3a3a3' }}
                 />
                 <Line
                   type="monotone"
@@ -226,10 +208,10 @@ export function DashboardView() {
 
         {/* Top Exception Types */}
         <Card title="Top Exception Types">
-          <div style={{ width: '100%', height: 180 }}>
+          <div style={{ width: '100%', height: 200 }}>
             <ResponsiveContainer>
               <BarChart data={topExceptionTypes} margin={{ left: -10, right: 10 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#262626" vertical={false} />
                 <XAxis
                   dataKey="type"
                   tick={{ ...axisStyle, fontSize: 10 }}
@@ -254,32 +236,32 @@ export function DashboardView() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100">
-                <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">ID</th>
-                <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Document</th>
-                <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Shipment</th>
-                <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Severity</th>
-                <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Status</th>
-                <th className="px-4 py-2 text-right text-[11px] font-semibold uppercase tracking-wide text-slate-400">Age</th>
+              <tr className="border-b border-neutral-800">
+                <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-neutral-500">ID</th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Document</th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Shipment</th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Severity</th>
+                <th className="px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Status</th>
+                <th className="px-4 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Age</th>
               </tr>
             </thead>
             <tbody>
               {recentExceptions.map((exc) => (
-                <tr key={exc.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
-                  <td className="px-4 py-2 font-mono text-xs font-medium text-slate-700">{exc.id}</td>
-                  <td className="px-4 py-2 font-medium text-slate-800">{exc.document}</td>
-                  <td className="px-4 py-2 font-mono text-xs text-slate-500">{exc.shipment}</td>
-                  <td className="px-4 py-2">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${severityColors[exc.severity]}`}>
+                <tr key={exc.id} className="border-b border-neutral-800/50 last:border-0 hover:bg-neutral-800/30 transition-colors">
+                  <td className="px-4 py-3 font-mono text-xs font-medium text-neutral-300">{exc.id}</td>
+                  <td className="px-4 py-3 font-medium text-white">{exc.document}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-neutral-400">{exc.shipment}</td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-semibold ${severityColors[exc.severity]}`}>
                       {exc.severity}
                     </span>
                   </td>
-                  <td className="px-4 py-2">
-                    <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-medium ${statusColors[exc.status]}`}>
+                  <td className="px-4 py-3">
+                    <span className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-medium ${statusColors[exc.status]}`}>
                       {exc.status}
                     </span>
                   </td>
-                  <td className="px-4 py-2 text-right text-xs text-slate-500">{exc.age}</td>
+                  <td className="px-4 py-3 text-right text-xs text-neutral-400">{exc.age}</td>
                 </tr>
               ))}
             </tbody>

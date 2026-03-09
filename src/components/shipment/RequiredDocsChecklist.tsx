@@ -13,7 +13,7 @@ const statusConfig: Record<
 > = {
   validated: {
     icon: CheckCircle2,
-    iconClass: 'text-green-500',
+    iconClass: 'text-emerald-500',
     label: 'Validated',
   },
   mismatch: {
@@ -28,7 +28,7 @@ const statusConfig: Record<
   },
   pending: {
     icon: Circle,
-    iconClass: 'text-slate-300',
+    iconClass: 'text-neutral-600',
     label: 'Pending',
   },
   missing: {
@@ -59,28 +59,28 @@ export function RequiredDocsChecklist({ documents, laneRequirements }: RequiredD
   const missing = documents.filter((d) => d.status === 'missing').length;
   const pending = documents.filter((d) => d.status === 'pending').length;
 
-  if (validated > 0) segments.push({ pct: (validated / total) * 100, color: 'bg-green-500' });
+  if (validated > 0) segments.push({ pct: (validated / total) * 100, color: 'bg-emerald-500' });
   if (issues > 0) segments.push({ pct: (issues / total) * 100, color: 'bg-amber-500' });
-  if (missing > 0) segments.push({ pct: (missing / total) * 100, color: 'bg-red-300' });
-  if (pending > 0) segments.push({ pct: (pending / total) * 100, color: 'bg-slate-200' });
+  if (missing > 0) segments.push({ pct: (missing / total) * 100, color: 'bg-red-400' });
+  if (pending > 0) segments.push({ pct: (pending / total) * 100, color: 'bg-neutral-700' });
 
   return (
-    <div>
+    <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4">
       {/* Lane requirements context */}
       {laneRequirements && (
-        <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50/60 px-3 py-2.5">
-          <div className="flex items-center gap-2 mb-1.5">
-            <Globe size={14} className="text-blue-500" />
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-blue-600">
+        <div className="mb-4 rounded-lg border border-blue-500/20 bg-blue-500/10 px-4 py-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Globe size={14} className="text-blue-400" />
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-blue-400">
               Lane Compliance Requirements
             </span>
           </div>
-          <p className="text-xs font-medium text-slate-700 mb-1.5">{laneRequirements.label}</p>
+          <p className="text-xs font-medium text-white mb-2">{laneRequirements.label}</p>
           <div className="flex flex-wrap gap-1.5">
             {laneRequirements.regulations.map((reg) => (
               <span
                 key={reg}
-                className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] font-medium text-blue-700"
+                className="inline-flex items-center rounded-md bg-blue-500/20 px-2.5 py-0.5 text-[10px] font-medium text-blue-300 ring-1 ring-blue-500/30"
               >
                 {reg}
               </span>
@@ -91,14 +91,14 @@ export function RequiredDocsChecklist({ documents, laneRequirements }: RequiredD
 
       {/* Progress summary */}
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-slate-700">
+        <span className="text-sm font-medium text-white">
           {received} of {total} documents received
         </span>
-        <span className="text-xs text-slate-400">{Math.round(receivedPct)}%</span>
+        <span className="text-xs text-neutral-500">{Math.round(receivedPct)}%</span>
       </div>
 
       {/* Segmented progress bar */}
-      <div className="mb-3 flex h-2 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="mb-4 flex h-2 w-full overflow-hidden rounded-full bg-neutral-800">
         {segments.map((seg, i) => (
           <div
             key={i}
@@ -117,26 +117,26 @@ export function RequiredDocsChecklist({ documents, laneRequirements }: RequiredD
           return (
             <li
               key={doc.id}
-              className="flex items-center gap-3 rounded-md border border-slate-100 px-3 py-2"
+              className="flex items-center gap-3 rounded-lg border border-neutral-800 bg-neutral-800/30 px-3 py-2.5 hover:bg-neutral-800/50 transition-colors"
             >
               <Icon size={16} className={cn('shrink-0', config.iconClass)} />
 
               <div className="flex-1 min-w-0">
-                <p className="truncate text-sm font-medium text-slate-700">
+                <p className="truncate text-sm font-medium text-white">
                   {doc.name}
                 </p>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
                   {doc.source && (
-                    <p className="text-[11px] text-slate-400">{doc.source}</p>
+                    <p className="text-[11px] text-neutral-500">{doc.source}</p>
                   )}
                   {doc.dgClassification && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-orange-500/10 px-2 py-0.5 text-[10px] font-bold text-orange-400 ring-1 ring-orange-500/20">
                       <Flame size={10} />
                       {doc.dgClassification}
                     </span>
                   )}
                   {doc.remindersSent != null && doc.remindersSent > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-400 ring-1 ring-amber-500/20">
                       <Bell size={9} />
                       {doc.remindersSent} {doc.remindersSent === 1 ? 'reminder' : 'reminders'} sent
                       {doc.lastReminderAt && (
@@ -154,18 +154,18 @@ export function RequiredDocsChecklist({ documents, laneRequirements }: RequiredD
                   className={cn(
                     'text-xs font-medium',
                     doc.status === 'validated'
-                      ? 'text-green-600'
+                      ? 'text-emerald-400'
                       : doc.status === 'missing'
-                        ? 'text-red-600'
+                        ? 'text-red-400'
                         : doc.status === 'pending'
-                          ? 'text-slate-400'
-                          : 'text-amber-600'
+                          ? 'text-neutral-500'
+                          : 'text-amber-400'
                   )}
                 >
                   {config.label}
                 </span>
                 {doc.receivedAt && (
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-neutral-500">
                     {formatShortDate(doc.receivedAt)}
                   </span>
                 )}
