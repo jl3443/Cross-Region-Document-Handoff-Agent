@@ -6,7 +6,25 @@ import { Separator } from '@/components/ui/separator';
 interface ScenarioOption {
   id: string;
   name: string;
+  shipmentId?: string;
+  exceptionStatus?: string;
+  severity?: string;
 }
+
+const exStatusColors: Record<string, string> = {
+  open: 'bg-blue-100 text-blue-700',
+  waiting: 'bg-amber-100 text-amber-700',
+  'in-review': 'bg-purple-100 text-purple-700',
+  escalated: 'bg-red-100 text-red-700',
+  resolved: 'bg-green-100 text-green-700',
+};
+
+const severityDot: Record<string, string> = {
+  critical: 'bg-red-500',
+  high: 'bg-orange-400',
+  medium: 'bg-amber-400',
+  low: 'bg-slate-400',
+};
 
 interface TopBarProps {
   title: string;
@@ -62,7 +80,19 @@ export function TopBar({
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                {scenario.name}
+                {scenario.shipmentId && scenario.exceptionStatus ? (
+                  <span className="flex items-center gap-1.5">
+                    {scenario.severity && (
+                      <span className={cn('h-1.5 w-1.5 rounded-full shrink-0', severityDot[scenario.severity] ?? 'bg-slate-400')} />
+                    )}
+                    <code className="font-mono text-[10px]">{scenario.shipmentId}</code>
+                    <span className={cn('rounded-full px-1.5 py-0.5 text-[9px] font-semibold', exStatusColors[scenario.exceptionStatus] ?? 'bg-slate-100 text-slate-600')}>
+                      {scenario.exceptionStatus}
+                    </span>
+                  </span>
+                ) : (
+                  scenario.name
+                )}
               </button>
             );
           })}

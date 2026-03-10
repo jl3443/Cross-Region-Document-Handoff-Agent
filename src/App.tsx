@@ -12,6 +12,7 @@ import {
   ChevronLeft,
 } from 'lucide-react';
 import { scenarios as builtInScenarios } from '@/data/scenarios';
+import { recentExceptions } from '@/data/dashboard-data';
 import type { ExceptionStatus, Scenario, DocumentException, ResolutionAction, ViewId, InboxEmail, SentEmail, ResolveDocType, UserRole } from '@/data/types';
 import { LoginPage } from '@/components/auth/LoginPage';
 import { INITIAL_INBOX_EMAILS, generateReply } from '@/data/inbox-emails';
@@ -107,7 +108,21 @@ export default function App() {
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const allScenarios = useMemo(() => [...builtInScenarios, ...customScenarios], [customScenarios]);
-  const scenarioOptions = useMemo(() => allScenarios.map((s) => ({ id: s.id, name: s.name })), [allScenarios]);
+
+  const exceptionByShipment = useMemo(() => Object.fromEntries(
+    recentExceptions.map((e) => [e.shipment, e])
+  ), []);
+
+  const scenarioOptions = useMemo(() => allScenarios.map((s) => {
+    const exc = exceptionByShipment[s.shipment.id];
+    return {
+      id: s.id,
+      name: s.name,
+      shipmentId: s.shipment.id,
+      exceptionStatus: exc?.status,
+      severity: exc?.severity,
+    };
+  }), [allScenarios, exceptionByShipment]);
   const scenario = useMemo(() => allScenarios.find((s) => s.id === activeScenarioId) ?? builtInScenarios[0], [activeScenarioId, allScenarios]);
 
   const exceptions = useMemo(
@@ -234,6 +249,16 @@ export default function App() {
     setResolvedExceptions(new Set());
     setShowShipmentList(false);
   }, []);
+
+  const handleNavigateToScenario = useCallback((shipmentId: string) => {
+    const target = allScenarios.find((s) => s.shipment.id === shipmentId);
+    if (!target) return;
+    setActiveScenarioId(target.id);
+    setSelectedExceptionId(null);
+    setResolvedExceptions(new Set());
+    setShowShipmentList(false);
+    setActiveView('overview');
+  }, [allScenarios]);
 
   const handleScenarioChange = useCallback((id: string) => {
     setActiveScenarioId(id);
@@ -645,7 +670,7 @@ export default function App() {
         <div className="flex-1 overflow-y-auto bg-muted/30 p-4">
 
           {/* DASHBOARD */}
-          {activeView === 'dashboard' && <DashboardView />}
+          {activeView === 'dashboard' && <DashboardView onNavigateToScenario={handleNavigateToScenario} />}
 
           {/* ANALYTICS */}
           {activeView === 'analytics' && <AnalyticsView />}

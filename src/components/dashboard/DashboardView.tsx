@@ -68,7 +68,11 @@ function exportExceptionsCSV() {
   URL.revokeObjectURL(url);
 }
 
-export function DashboardView() {
+interface DashboardViewProps {
+  onNavigateToScenario?: (shipmentId: string) => void;
+}
+
+export function DashboardView({ onNavigateToScenario }: DashboardViewProps) {
   return (
     <div className="space-y-2">
       {/* AI Insights Hero */}
@@ -186,7 +190,11 @@ export function DashboardView() {
               </thead>
               <tbody>
                 {recentExceptions.map((exc) => (
-                  <tr key={exc.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
+                  <tr
+                    key={exc.id}
+                    className={`border-b border-slate-50 last:border-0 hover:bg-slate-50/50 ${onNavigateToScenario ? 'cursor-pointer hover:bg-blue-50/40' : ''}`}
+                    onClick={() => onNavigateToScenario?.(exc.shipment)}
+                  >
                     <td className="px-4 py-2 font-mono text-xs font-medium text-slate-700">{exc.id}</td>
                     <td className="px-4 py-2 font-medium text-slate-800">{exc.document}</td>
                     <td className="px-4 py-2 text-xs text-slate-500">{exc.scenario}</td>

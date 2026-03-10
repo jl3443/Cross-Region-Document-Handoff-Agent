@@ -1083,7 +1083,7 @@ const scenario4: Scenario = {
   id: 'scenario-4',
   name: 'Cutoff Risk Escalation',
   description:
-    'Shipment SHP-20481 has escalated to critical status. ISF remains unfiled after 12 hours of chase. BOL version conflict discovered. 4 hours to cutoff. War room activated.',
+    'Shipment SHP-20484 has escalated to critical status. BOL version conflict discovered with 4 hours to vessel cutoff. War room activated for emergency resolution.',
   warRoom: true,
   laneRequirements: {
     label: 'CN → US Ocean (CNSHA → USLAX)',
@@ -1091,8 +1091,8 @@ const scenario4: Scenario = {
   },
 
   shipment: {
-    id: 'SHP-20481',
-    poId: 'PO-2024-8891',
+    id: 'SHP-20484',
+    poId: 'PO-2024-8894',
     mode: 'ocean',
     origin: { city: 'Shanghai', port: 'CNSHA', country: 'CN' },
     destination: { city: 'Los Angeles', port: 'USLAX', country: 'US' },
@@ -1222,14 +1222,14 @@ const scenario4: Scenario = {
           to: 'ops.director@globalforwarding.com',
           cc: 'sarah.chen@globalforwarding.com; david.park@company.com; legal@company.com',
           subject:
-            'FINAL NOTICE: ISF Filing Overdue 18 Hours - SHP-20481 / MSKU-7294810 - Immediate Action Required',
+            'FINAL NOTICE: BOL Version Conflict - SHP-20484 / MSKU-7294810 - Immediate Action Required',
           body: `Dear Global Forwarding Co. Operations Director,
 
 This is a final escalation notice regarding the critically overdue ISF filing:
 
 SHIPMENT AT RISK OF ROLLING:
-- Shipment: SHP-20481
-- PO: PO-2024-8891
+- Shipment: SHP-20484
+- PO: PO-2024-8894
 - Container: MSKU-7294810
 - Vessel: Maersk Eindhoven / Voyage 248E
 - Cutoff: 4 HOURS REMAINING
@@ -1296,12 +1296,12 @@ VP Operations`,
           to: 'emergency@flexport.com',
           cc: 'david.park@company.com',
           subject:
-            'EMERGENCY ISF Filing Request - SHP-20481 / MSKU-7294810 / 4hr Cutoff',
+            'EMERGENCY BOL Conflict Resolution - SHP-20484 / MSKU-7294810 / 4hr Cutoff',
           body: `Dear Flexport Emergency Filing Team,
 
-We may need emergency ISF filing services for the following shipment:
+We may need emergency filing services for the following shipment:
 
-Shipment: SHP-20481
+Shipment: SHP-20484
 Container: MSKU-7294810
 Vessel: Maersk Eindhoven / Voyage 248E
 Origin: Shanghai (CNSHA)
@@ -1331,13 +1331,13 @@ VP Operations`,
           to: 'supply.chain@techretail.com',
           cc: 'david.park@company.com; account.manager@company.com',
           subject:
-            'Shipment Status Advisory - PO-2024-8891 / SHP-20481 - Potential Delay',
+            'Shipment Status Advisory - PO-2024-8894 / SHP-20484 - Potential Delay',
           body: `Dear TechRetail Supply Chain Team,
 
 We are writing to provide a proactive status update on your shipment:
 
-PO: PO-2024-8891
-Shipment: SHP-20481
+PO: PO-2024-8894
+Shipment: SHP-20484
 Cargo: Consumer Electronics - LCD Panels
 Vessel: Maersk Eindhoven / Voyage 248E
 Original ETA Los Angeles: March 28
@@ -1581,7 +1581,7 @@ VP Operations`,
     {
       id: 'GTL-030',
       timestamp: '2024-03-14T06:00:00Z',
-      description: 'Shipment SHP-20481 created. Booking confirmed with Maersk. ISF filing window opened.',
+      description: 'Shipment SHP-20484 created. Booking confirmed with Maersk. BOL issued.',
       type: 'system',
     },
     {
