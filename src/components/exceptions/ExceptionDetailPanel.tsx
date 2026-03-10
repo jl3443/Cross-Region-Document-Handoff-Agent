@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
@@ -27,7 +27,10 @@ interface ExceptionDetailPanelProps {
   onAction: (actionId: string) => void;
   onResolve: () => void;
   executedActionIds?: Set<string>;
+  repliedActionIds?: Set<string>;
   onExecuteAll?: () => void;
+  hasSeenAssessment?: boolean;
+  onAssessmentSeen?: (excId: string) => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -151,10 +154,28 @@ export function ExceptionDetailPanel({
   onAction,
   onResolve,
   executedActionIds,
+  repliedActionIds,
   onExecuteAll,
+  hasSeenAssessment = false,
+  onAssessmentSeen,
 }: ExceptionDetailPanelProps) {
   const [showResolveConfirm, setShowResolveConfirm] = useState(false);
   const [sendingAll, setSendingAll] = useState(false);
+  const [thinkingDone, setThinkingDone] = useState(hasSeenAssessment);
+
+  // AI Assessment thinking animation — only plays on first open
+  useEffect(() => {
+    if (hasSeenAssessment) {
+      setThinkingDone(true);
+      return;
+    }
+    setThinkingDone(false);
+    const timer = setTimeout(() => {
+      setThinkingDone(true);
+      if (exception) onAssessmentSeen?.(exception.id);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [exception?.id, hasSeenAssessment]);
 
   if (!exception) return null;
 
@@ -162,6 +183,10 @@ export function ExceptionDetailPanel({
     (a) => !executedActionIds?.has(a.id)
   );
   const allExecuted = exception.resolutionActions.length > 0 && unexecutedActions.length === 0;
+  const allReplied = exception.resolutionActions.length > 0 &&
+    exception.resolutionActions.every((a) => repliedActionIds?.has(a.id));
+  // Gate: can only resolve when ALL actions executed AND ALL replies received
+  const canResolve = allExecuted && allReplied;
 
   const handleSendAll = () => {
     setSendingAll(true);
@@ -233,14 +258,29 @@ export function ExceptionDetailPanel({
                 <SectionHeading>Why It Matters</SectionHeading>
                 <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4 mt-3">
                   <div className="mb-2 flex items-center gap-1.5">
-                    <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                    <Sparkles className={cn("h-3.5 w-3.5 text-indigo-500", !thinkingDone && "animate-pulse")} />
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-500">
                       AI Assessment
                     </span>
+                    {!thinkingDone && (
+                      <Loader2 className="h-3 w-3 animate-spin text-indigo-400 ml-auto" />
+                    )}
                   </div>
-                  <p className="text-sm leading-relaxed text-slate-700">
-                    {exception.aiAssessment}
-                  </p>
+                  {thinkingDone ? (
+                    <motion.p
+                      initial={hasSeenAssessment ? false : { opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.4 }}
+                      className="text-sm leading-relaxed text-slate-700"
+                    >
+                      {exception.aiAssessment}
+                    </motion.p>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm text-indigo-400">
+                      <span>Analyzing exception context and historical patterns</span>
+                      <span className="animate-pulse">...</span>
+                    </div>
+                  )}
                 </div>
               </section>
 
@@ -307,6 +347,7 @@ export function ExceptionDetailPanel({
                       const cfg = actionConfig[action.type];
                       const Icon = cfg.icon;
                       const isExecuted = executedActionIds?.has(action.id) ?? false;
+                      const isReplied = repliedActionIds?.has(action.id) ?? false;
 
                       return (
                         <div
@@ -314,7 +355,7 @@ export function ExceptionDetailPanel({
                           className={cn(
                             'rounded-lg border p-4 transition-all duration-200',
                             cfg.border,
-                            isExecuted ? 'bg-green-50/60 border-green-200' : cfg.bg
+                            isReplied ? 'bg-green-50/60 border-green-200' : isExecuted ? 'bg-amber-50/40 border-amber-200' : cfg.bg
                           )}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -322,17 +363,19 @@ export function ExceptionDetailPanel({
                               <div
                                 className={cn(
                                   'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
-                                  isExecuted ? 'bg-green-100' : cfg.bg
+                                  isReplied ? 'bg-green-100' : isExecuted ? 'bg-amber-100' : cfg.bg
                                 )}
                               >
-                                {isExecuted ? (
-                                  <MailCheck className="h-4 w-4 text-green-600" />
+                                {isReplied ? (
+                                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                                ) : isExecuted ? (
+                                  <Loader2 className="h-4 w-4 text-amber-600 animate-spin" />
                                 ) : (
                                   <Icon className={cn('h-4 w-4', cfg.accent)} />
                                 )}
                               </div>
                               <div className="min-w-0">
-                                <p className={cn('text-sm font-medium', isExecuted ? 'text-green-800' : 'text-slate-800')}>
+                                <p className={cn('text-sm font-medium', isReplied ? 'text-green-800' : isExecuted ? 'text-amber-800' : 'text-slate-800')}>
                                   {action.label}
                                 </p>
                                 <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
@@ -344,11 +387,16 @@ export function ExceptionDetailPanel({
                               </div>
                             </div>
 
-                            {/* Execute / Sent indicator */}
-                            {isExecuted ? (
+                            {/* Execute → Sent → Confirmed status */}
+                            {isReplied ? (
                               <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-green-200 bg-green-50 px-2.5 py-1.5 text-xs font-medium text-green-700">
-                                <MailCheck className="h-3.5 w-3.5" />
-                                Sent
+                                <CheckCircle2 className="h-3.5 w-3.5" />
+                                Confirmed
+                              </span>
+                            ) : isExecuted ? (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2.5 py-1.5 text-xs font-medium text-amber-700">
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                Awaiting Reply
                               </span>
                             ) : (
                               <button
@@ -368,8 +416,23 @@ export function ExceptionDetailPanel({
                     })}
                   </div>
 
-                  {/* All-dispatched summary */}
-                  {allExecuted && (
+                  {/* Progress summary */}
+                  {allExecuted && !allReplied && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-center gap-2.5"
+                    >
+                      <Loader2 className="h-4 w-4 text-amber-600 animate-spin shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold text-amber-800">All actions dispatched — awaiting replies</p>
+                        <p className="text-[11px] text-amber-700 mt-0.5">
+                          Confirmation pending — check inbox for responses before resolving.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                  {allExecuted && allReplied && (
                     <motion.div
                       initial={{ opacity: 0, y: 4 }}
                       animate={{ opacity: 1, y: 0 }}
@@ -377,9 +440,9 @@ export function ExceptionDetailPanel({
                     >
                       <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
                       <div>
-                        <p className="text-xs font-semibold text-green-800">All actions dispatched</p>
+                        <p className="text-xs font-semibold text-green-800">All actions confirmed</p>
                         <p className="text-[11px] text-green-700 mt-0.5">
-                          Awaiting document confirmation — status will update when system receipt is confirmed.
+                          All replies received — you can now mark this exception as resolved.
                         </p>
                       </div>
                     </motion.div>
@@ -451,8 +514,15 @@ export function ExceptionDetailPanel({
 
               <div className="flex items-center gap-3 px-5 py-3">
                 <button
-                  onClick={() => setShowResolveConfirm(true)}
-                  className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                  onClick={() => canResolve && setShowResolveConfirm(true)}
+                  disabled={!canResolve}
+                  className={cn(
+                    'flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors',
+                    canResolve
+                      ? 'bg-green-600 text-white hover:bg-green-700'
+                      : 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                  )}
+                  title={!canResolve ? 'Execute all actions and receive replies before resolving' : undefined}
                 >
                   <CheckCircle2 className="h-4 w-4" />
                   Mark as Resolved

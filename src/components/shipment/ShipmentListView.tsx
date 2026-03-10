@@ -1,4 +1,4 @@
-import { ArrowRight, Ship, Plane, Truck, AlertTriangle, FileText, Clock, ChevronRight } from 'lucide-react';
+import { ArrowRight, Ship, Plane, Truck, AlertTriangle, FileText, Clock, ChevronRight, CheckCircle2 } from 'lucide-react';
 import type { Scenario } from '@/data/types';
 import { cn, formatCountdown, getCutoffColor } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 interface ShipmentListViewProps {
   scenarios: Scenario[];
   resolvedExceptions: Set<string>;
+  completedScenarios: Set<string>;
   onSelect: (id: string) => void;
 }
 
@@ -500,9 +501,136 @@ function DecorativeCard({ row }: { row: DecorativeRow }) {
   );
 }
 
+// ── Completed (cleared for handoff) card — emerald treatment ──────────────
+interface CompletedScenarioCardProps {
+  scenario: Scenario;
+  onClick: () => void;
+}
+
+function CompletedScenarioCard({ scenario, onClick }: CompletedScenarioCardProps) {
+  const modeCfg = getTransportModeCfg(scenario.shipment.mode);
+  const ModeIcon = modeCfg.Icon;
+  const totalDocs = scenario.documents.length;
+
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'group relative w-full rounded-xl border text-left shadow-sm',
+        'transition-all duration-150 hover:shadow-md hover:border-emerald-400/50',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
+        'bg-emerald-50/40 ring-1 ring-emerald-300/50'
+      )}
+    >
+      <div className="absolute inset-y-0 left-0 w-1 rounded-l-xl bg-emerald-500" />
+
+      <div className="flex items-center gap-0 pl-5 pr-4 py-3">
+        {/* ID + name */}
+        <div className="min-w-[160px] flex-shrink-0">
+          <div className="flex items-center gap-2 mb-0.5">
+            <code className="text-sm font-bold font-mono text-foreground">
+              {scenario.shipment.id}
+            </code>
+            <span className="rounded-full bg-emerald-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-emerald-700 uppercase">
+              Cleared
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground truncate max-w-[150px]">{scenario.name}</p>
+          <div className="mt-1 flex items-center gap-1">
+            <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              Ready to Ship
+            </span>
+          </div>
+        </div>
+
+        <Separator orientation="vertical" className="h-10 mx-3" />
+
+        {/* Route + Carrier */}
+        <div className="flex-1 min-w-[180px]">
+          <div className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+            <span className="font-mono text-xs text-muted-foreground">{scenario.shipment.origin.port}</span>
+            <span className="text-muted-foreground text-xs">{scenario.shipment.origin.city}</span>
+            <ArrowRight className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+            <span className="font-mono text-xs text-muted-foreground">{scenario.shipment.destination.port}</span>
+            <span className="text-muted-foreground text-xs">{scenario.shipment.destination.city}</span>
+          </div>
+          <p className="mt-0.5 text-xs text-muted-foreground truncate flex items-center gap-1">
+            <span className={cn('inline-flex items-center gap-0.5 rounded border px-1 py-0.5 text-[9px] font-semibold shrink-0', modeCfg.bg, modeCfg.color)}>
+              <ModeIcon className="h-2.5 w-2.5" />
+              {modeCfg.label}
+            </span>
+            <span className="truncate">{scenario.shipment.carrier} · {scenario.shipment.vessel} · {scenario.shipment.voyage}</span>
+          </p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground/70 truncate">
+            {scenario.shipment.cargoDescription}
+          </p>
+        </div>
+
+        <Separator orientation="vertical" className="h-10 mx-3" />
+
+        {/* Exceptions — all resolved */}
+        <div className="text-center min-w-[64px] flex-shrink-0">
+          <div className="text-xl font-bold text-emerald-600 tabular-nums">0</div>
+          <div className="text-[10px] text-muted-foreground leading-tight">Exceptions</div>
+          <div className="mt-0.5 text-[9px] font-semibold text-emerald-600">All Resolved</div>
+        </div>
+
+        <Separator orientation="vertical" className="h-10 mx-3" />
+
+        {/* Documents */}
+        <div className="text-center min-w-[60px] flex-shrink-0">
+          <div className="text-xl font-bold tabular-nums text-foreground">
+            {totalDocs}
+            <span className="text-sm font-medium text-muted-foreground">/{totalDocs}</span>
+          </div>
+          <div className="text-[10px] text-muted-foreground leading-tight">Docs</div>
+          <div className="mt-0.5 text-[9px] font-medium text-muted-foreground">Complete</div>
+        </div>
+
+        <Separator orientation="vertical" className="h-10 mx-3" />
+
+        {/* Readiness — hardcoded 100% */}
+        <div className="min-w-[90px] flex-shrink-0">
+          <div className="flex justify-between mb-1">
+            <span className="text-[10px] text-muted-foreground">
+              <FileText className="inline h-2.5 w-2.5 mr-0.5" />
+              Readiness
+            </span>
+            <span className="text-[11px] font-bold tabular-nums text-emerald-600">
+              100%
+            </span>
+          </div>
+          <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
+            <div className="h-full rounded-full bg-emerald-500 w-full" />
+          </div>
+        </div>
+
+        <Separator orientation="vertical" className="h-10 mx-3" />
+
+        {/* Cleared status instead of cutoff */}
+        <div className="text-center min-w-[56px] flex-shrink-0">
+          <div className="flex flex-col items-center gap-1">
+            <CheckCircle2 className="h-5 w-5 text-emerald-600" />
+            <span className="text-[10px] font-semibold text-emerald-700">Cleared</span>
+          </div>
+        </div>
+
+        {/* Arrow */}
+        <div className="ml-3 flex-shrink-0">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100/60 group-hover:bg-primary/10 transition-colors">
+            <ChevronRight className="h-4 w-4 text-emerald-600 group-hover:text-primary transition-colors" />
+          </div>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export function ShipmentListView({
   scenarios,
   resolvedExceptions,
+  completedScenarios,
   onSelect,
 }: ShipmentListViewProps) {
   const totalExceptions = scenarios.reduce(
@@ -519,6 +647,10 @@ export function ShipmentListView({
     return getPriority(a.shipment.status, a.warRoom) - getPriority(b.shipment.status, b.warRoom);
   });
 
+  // Feature C: Split into active (non-completed) vs completed scenarios
+  const activeScenarios = sortedScenarios.filter(s => !completedScenarios.has(s.id));
+  const completedList = sortedScenarios.filter(s => completedScenarios.has(s.id));
+
   // Sort decorative rows — always displayed last (all on-track, so priority 4)
   const sortedDecorativeRows = [...DECORATIVE_ROWS].sort(
     (a, b) => getPriority(a.status) - getPriority(b.status)
@@ -528,9 +660,9 @@ export function ShipmentListView({
     | { kind: 'real'; scenario: Scenario }
     | { kind: 'deco'; row: DecorativeRow };
 
-  // Demo scenarios first, then decorative rows — clean and simple
+  // Active (non-completed) demo scenarios first, then decorative rows
   const allItems: MergedItem[] = [
-    ...sortedScenarios.map((s): MergedItem => ({ kind: 'real', scenario: s })),
+    ...activeScenarios.map((s): MergedItem => ({ kind: 'real', scenario: s })),
     ...sortedDecorativeRows.map((r): MergedItem => ({ kind: 'deco', row: r })),
   ];
 
@@ -562,13 +694,15 @@ export function ShipmentListView({
       </div>
 
       {/* Section label for demo scenarios */}
-      <div className="flex items-center gap-2 px-1">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-700/80">
-          Active Demo Scenarios
-        </span>
-        <div className="flex-1 h-px bg-amber-200/60" />
-        <span className="text-[10px] text-muted-foreground">{scenarios.length} shipments</span>
-      </div>
+      {activeScenarios.length > 0 && (
+        <div className="flex items-center gap-2 px-1">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-700/80">
+            Active Demo Scenarios
+          </span>
+          <div className="flex-1 h-px bg-amber-200/60" />
+          <span className="text-[10px] text-muted-foreground">{activeScenarios.length} shipment{activeScenarios.length !== 1 ? 's' : ''}</span>
+        </div>
+      )}
 
       {/* Cards — demo scenarios first, decorative rows after */}
       <div className="space-y-2">
@@ -599,6 +733,28 @@ export function ShipmentListView({
           );
         })}
       </div>
+
+      {/* Feature C: READY TO SHIP section — completed/cleared scenarios */}
+      {completedList.length > 0 && (
+        <div className="space-y-2 mt-4">
+          <div className="flex items-center gap-2 px-1">
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700/80">
+              Ready to Ship
+            </span>
+            <div className="flex-1 h-px bg-emerald-200/60" />
+            <span className="text-[10px] text-muted-foreground">
+              {completedList.length} shipment{completedList.length !== 1 ? 's' : ''} · Cleared
+            </span>
+          </div>
+          {completedList.map(scenario => (
+            <CompletedScenarioCard
+              key={scenario.id}
+              scenario={scenario}
+              onClick={() => onSelect(scenario.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

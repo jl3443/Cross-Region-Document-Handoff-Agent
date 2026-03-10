@@ -3,6 +3,7 @@ import { cn } from '../../lib/utils';
 interface ReadinessScoreProps {
   score: number;
   label?: string;
+  large?: boolean;
 }
 
 function getScoreColor(score: number) {
@@ -11,13 +12,13 @@ function getScoreColor(score: number) {
   return { stroke: 'stroke-red-500', text: 'text-red-600' };
 }
 
-export function ReadinessScore({ score, label }: ReadinessScoreProps) {
+export function ReadinessScore({ score, label, large }: ReadinessScoreProps) {
   const clamped = Math.min(100, Math.max(0, score));
   const { stroke, text } = getScoreColor(clamped);
 
   // SVG ring dimensions
-  const size = 88;
-  const strokeWidth = 6;
+  const size = large ? 148 : 88;
+  const strokeWidth = large ? 10 : 6;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (clamped / 100) * circumference;
@@ -25,7 +26,13 @@ export function ReadinessScore({ score, label }: ReadinessScoreProps) {
   const statusLabel = clamped >= 100 ? 'Ready' : clamped >= 70 ? 'On Track' : clamped >= 40 ? 'At Risk' : 'Blocked';
 
   return (
-    <div className="flex flex-col items-center rounded-lg border border-slate-200 bg-white px-4 py-3">
+    <div className={cn(
+      'flex flex-col items-center rounded-lg border border-slate-200 bg-white',
+      large ? 'px-6 py-5 flex-1' : 'px-4 py-3'
+    )}>
+      {large && (
+        <p className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-3">Readiness Score</p>
+      )}
       {/* SVG ring */}
       <div className="relative" style={{ width: size, height: size }}>
         <svg
@@ -60,14 +67,14 @@ export function ReadinessScore({ score, label }: ReadinessScoreProps) {
 
         {/* Center text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className={cn('text-lg font-bold', text)}>{clamped}%</span>
-          <span className={cn('text-xs font-medium', text)}>{statusLabel}</span>
+          <span className={cn(large ? 'text-3xl' : 'text-lg', 'font-bold', text)}>{clamped}%</span>
+          <span className={cn(large ? 'text-sm' : 'text-xs', 'font-medium', text)}>{statusLabel}</span>
         </div>
       </div>
 
       {/* Below label */}
       {label && (
-        <p className="mt-2 text-center text-xs text-slate-500">{label}</p>
+        <p className={cn('mt-2 text-center text-slate-500', large ? 'text-sm' : 'text-xs')}>{label}</p>
       )}
     </div>
   );

@@ -364,7 +364,7 @@ const scenario2: Scenario = {
     received: 5,
     matched: 3,
     exceptionsDetected: 2,
-    blockingIssues: 0,
+    blockingIssues: 2,
   },
 
   exceptions: [
@@ -373,7 +373,7 @@ const scenario2: Scenario = {
       type: 'mismatch',
       severity: 'high',
       status: 'in-review',
-      blocking: false,
+      blocking: true,
       documentName: 'Commercial Invoice',
       owner: 'James Liu',
       ownerRole: 'Trade Compliance Analyst',
@@ -570,7 +570,7 @@ Trade Compliance Team`,
       type: 'mismatch',
       severity: 'high',
       status: 'in-review',
-      blocking: false,
+      blocking: true,
       documentName: 'Packing List',
       owner: 'James Liu',
       ownerRole: 'Trade Compliance Analyst',
@@ -981,6 +981,39 @@ Thank you for your patience.
 Best regards,
 Documentation Control Team`,
           tab: 'Carrier DG Desk',
+        },
+        {
+          to: 'msds@basf.com',
+          cc: 'regulatory.affairs@basf.com',
+          subject:
+            'MSDS Request: Industrial Solvents (UN 1993) - PO-2024-9102 / SHP-20483',
+          body: `Dear BASF MSDS Team,
+
+We are requesting an original digital copy of the Material Safety Data Sheet for the following product shipped under PO-2024-9102:
+
+Product: Industrial Solvents & Cleaning Agents
+UN Number: UN 1993
+Classification: Class 3 — Flammable Liquids, PG III
+CAS Registry: Isopropanol / Methanol blend
+
+The MSDS copy received from the logistics intermediary (EuroChem Supply BV) has significant quality issues — OCR confidence is only 42%, with critical sections unreadable.
+
+We require the manufacturer-issued original PDF for:
+1. REACH Regulation (EC 1907/2006) compliance verification
+2. IMO DG Declaration preparation
+3. US TSCA Import Certification
+
+Shipment Details:
+- Shipment: SHP-20483
+- Container: HLXU-3019574
+- Vessel: Osaka Express / Voyage 112S (Rotterdam → Houston)
+- Cutoff: 48 hours
+
+Please provide the digital PDF at your earliest convenience.
+
+Best regards,
+Documentation Control Team`,
+          tab: 'Manufacturer',
         },
       ],
       timeline: [
@@ -1540,6 +1573,38 @@ Regards,
 David Park
 VP Operations`,
           tab: 'Carrier Documentation',
+        },
+        {
+          to: 'legal@techretail.com',
+          cc: 'supply.chain@techretail.com; david.park@company.com',
+          subject:
+            'URGENT: Consignee Name Verification - MAEU-SHA248E-7294810 / SHP-20484',
+          body: `Dear TechRetail Legal Team,
+
+We need urgent verification of the correct legal entity name for the consignee on the following shipment:
+
+BOL: MAEU-SHA248E-7294810
+Container: MSKU-7294810
+Vessel: Maersk Eindhoven / Voyage 248E
+Cutoff: 4 HOURS
+
+We have received an amended Bill of Lading (v2) from the carrier showing:
+- Original (v1): "TechRetail Inc."
+- Amended (v2): "Tech Retail International Inc."
+
+This discrepancy is blocking customs filing as the ISF and customs entry must reference the exact legal entity name registered with CBP.
+
+Could you please confirm:
+1. Which legal entity name is correct for import documentation?
+2. Was a name change or entity restructuring recently completed?
+3. Is "Tech Retail International Inc." the current registered name with CBP?
+
+Given the 4-hour vessel cutoff, we need confirmation within 30 minutes to proceed with customs filing.
+
+Regards,
+David Park
+VP Operations`,
+          tab: 'Customer Legal',
         },
       ],
       timeline: [

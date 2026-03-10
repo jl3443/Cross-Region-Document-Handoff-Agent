@@ -31,7 +31,7 @@ interface SidebarProps {
   shipmentStatus?: string;
   cutoffHours?: number;
   readinessPercent?: number;
-  inboxHasReply?: boolean;
+  inboxHasReply?: number;
   emailSubView?: 'inbox' | 'sent';
   onEmailSubViewChange?: (v: 'inbox' | 'sent') => void;
   userRole?: UserRole;
@@ -176,7 +176,7 @@ export function Sidebar({
         <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
           <FileCheck size={14} className="text-primary-foreground" />
         </div>
-        <span className="text-[11px] font-semibold text-sidebar-accent-foreground tracking-tight leading-snug">
+        <span className="text-[9px] font-semibold text-sidebar-accent-foreground tracking-tight leading-snug">
           Cross Region Document Handoff Agent
         </span>
       </div>
@@ -276,9 +276,9 @@ export function Sidebar({
               )}
             />
             <span className="flex-1 text-left truncate">Email</span>
-            {inboxHasReply && activeView !== 'email' && (
+            {inboxHasReply > 0 && activeView !== 'email' && (
               <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-white">
-                1
+                {inboxHasReply}
               </span>
             )}
             <span
@@ -312,7 +312,7 @@ export function Sidebar({
                 label="Inbox"
                 icon={Inbox}
                 isActive={activeView === 'email' && emailSubView === 'inbox'}
-                badge={inboxHasReply ? 1 : undefined}
+                badge={inboxHasReply > 0 ? inboxHasReply : undefined}
                 onClick={() => {
                   onViewChange('email');
                   onEmailSubViewChange?.('inbox');
@@ -405,7 +405,7 @@ export function Sidebar({
           </div>
         )}
         <p className="text-[10px] text-sidebar-foreground/30 px-1">
-          DocFlow · v2.4
+          Cross Region Agent · v2.4
         </p>
       </div>
     </aside>

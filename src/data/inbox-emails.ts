@@ -1,5 +1,8 @@
 import type { InboxEmail, EmailDraft, ResolveDocType } from './types';
 
+// Counter to ensure unique reply IDs even when generated in rapid succession
+let replyCounter = 0;
+
 export const INITIAL_INBOX_EMAILS: InboxEmail[] = [
   {
     id: 'inbox-1',
@@ -220,7 +223,7 @@ Counterpart Operations Team`;
   }
 
   return {
-    id: `reply-${Date.now()}`,
+    id: `reply-${Date.now()}-${replyCounter++}`,
     from: draft.to,
     fromName: draft.tab,
     subject: `Re: ${draft.subject}`,

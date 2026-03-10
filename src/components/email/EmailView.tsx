@@ -9,6 +9,7 @@ interface EmailViewProps {
   inboxEmails: InboxEmail[];
   sentEmails: SentEmail[];
   onMarkRead: (id: string) => void;
+  onReadReply?: (emailId: string) => void;
   onNavigateDocuments?: () => void;
 }
 
@@ -393,6 +394,7 @@ export function EmailView({
   inboxEmails,
   sentEmails,
   onMarkRead,
+  onReadReply,
   onNavigateDocuments,
 }: EmailViewProps) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -403,6 +405,8 @@ export function EmailView({
   const handleSelectInbox = (email: InboxEmail) => {
     setSelectedId(email.id);
     if (!email.read) onMarkRead(email.id);
+    // When user opens a reply email, notify parent to confirm the action
+    if (email.isReply && onReadReply) onReadReply(email.id);
   };
 
   const handleSubViewChange = (v: 'inbox' | 'sent') => {

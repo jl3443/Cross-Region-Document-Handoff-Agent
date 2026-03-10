@@ -13,6 +13,8 @@ import {
   Ship,
   Plane,
   Truck,
+  Clock,
+  Zap,
 } from 'lucide-react';
 import { scenarios as builtInScenarios } from '@/data/scenarios';
 import { recentExceptions } from '@/data/dashboard-data';
@@ -45,7 +47,7 @@ import { ResolutionTimeline } from '@/components/timeline/ResolutionTimeline';
 
 import { RiskBanner } from '@/components/alerts/RiskBanner';
 import { EscalationModal } from '@/components/alerts/EscalationModal';
-import type { AiReasoning } from '@/components/alerts/EscalationModal';
+import type { AiReasoning, ActionOption } from '@/components/alerts/EscalationModal';
 
 import { EmailView } from '@/components/email/EmailView';
 
@@ -75,6 +77,13 @@ const viewTitles: Record<ViewId, string> = {
   email: 'Email',
 };
 
+// ── Navigation history stack (Feature B) ─────────────────────────────────
+interface NavState {
+  view: ViewId;
+  showShipmentList: boolean;
+  scenarioId: string;
+}
+
 export default function App() {
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [activeView, setActiveView] = useState<ViewId>('dashboard');
@@ -84,20 +93,6 @@ export default function App() {
   const [activeDrafts, setActiveDrafts] = useState<typeof builtInScenarios[0]['exceptions'][0]['emailDrafts']>([]);
   const [showEscalationModal, setShowEscalationModal] = useState(false);
   const [resolvedExceptions, setResolvedExceptions] = useState<Set<string>>(new Set());
-  const [escalationActions, setEscalationActions] = useState<
-    {
-      target: string;
-      description: string;
-      status: 'pending' | 'sent' | 'confirmed';
-      contact?: {
-        name: string;
-        role: string;
-        phone: string;
-        altPhone?: string;
-        email: string;
-      };
-    }[]
-  >([]);
   const [showComplianceModal, setShowComplianceModal] = useState(false);
   const [complianceOverride, setComplianceOverride] = useState<{ exceptionId: string; documentName: string } | null>(null);
   const [complianceStatus, setComplianceStatus] = useState<'pending' | 'reviewing' | 'approved'>('pending');
@@ -109,7 +104,7 @@ export default function App() {
   const [showShipmentList, setShowShipmentList] = useState(true);
   const [inboxEmails, setInboxEmails] = useState<InboxEmail[]>(INITIAL_INBOX_EMAILS);
   const [sentEmails, setSentEmails] = useState<SentEmail[]>([]);
-  const [inboxHasNewReply, setInboxHasNewReply] = useState(false);
+  const [inboxHasNewReply, setInboxHasNewReply] = useState(0);
   const [emailSubView, setEmailSubView] = useState<'inbox' | 'sent'>('inbox');
   const [resolvedDocTypes, setResolvedDocTypes] = useState<Set<ResolveDocType>>(new Set());
   const [liveCountdownSecs, setLiveCountdownSecs] = useState<number | null>(null);
@@ -118,7 +113,18 @@ export default function App() {
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   // Task 3: Track which exception actions have been executed (email sent)
   const [executedActionIds, setExecutedActionIds] = useState<Set<string>>(new Set());
+  // Track which actions have received email replies (confirmation)
+  const [repliedActionIds, setRepliedActionIds] = useState<Set<string>>(new Set());
   const lastTriggeredActionIdRef = useRef<string | null>(null);
+  const replyToActionRef = useRef<Map<string, string>>(new Map());
+  const pendingOverrideActionRef = useRef<string | null>(null);
+  const sentCounterRef = useRef(0);
+  // Feature: Track which AI assessments have been "seen" (thinking animation already played)
+  const [seenAssessments, setSeenAssessments] = useState<Set<string>>(new Set());
+  // Feature B: Navigation history stack
+  const [navStack, setNavStack] = useState<NavState[]>([]);
+  // Feature C: Track completed (cleared for handoff) scenarios
+  const [completedScenarios, setCompletedScenarios] = useState<Set<string>>(new Set());
 
   const allScenarios = useMemo(() => [...builtInScenarios, ...customScenarios], [customScenarios]);
 
@@ -163,6 +169,9 @@ export default function App() {
       if (resolvedDocTypes.has('msds') && (n.includes('msds') || n.includes('material safety') || n.includes('dangerous goods declaration'))) {
         return { ...doc, status: 'validated' as const, receivedAt: new Date().toISOString(), source: 'Email — AI Matched' };
       }
+      if (resolvedDocTypes.has('bol') && (n.includes('bill of lading') || n.includes('bol'))) {
+        return { ...doc, status: 'validated' as const, receivedAt: new Date().toISOString(), source: 'Upload — AI Matched' };
+      }
       // Manual resolve override: if the exception tied to this document was resolved,
       // treat the document as validated so the gate check can progress
       const hasResolvedExc = scenario.exceptions.some(
@@ -183,6 +192,7 @@ export default function App() {
     if (resolvedDocTypes.has('isf') && (name.includes('isf') || name.includes('importer security'))) return true;
     if (resolvedDocTypes.has('invoice') && (name.includes('invoice') || name.includes('commercial') || name.includes('packing list'))) return true;
     if (resolvedDocTypes.has('msds') && (name.includes('msds') || name.includes('material safety') || name.includes('dangerous goods'))) return true;
+    if (resolvedDocTypes.has('bol') && (name.includes('bill of lading') || name.includes('bol'))) return true;
     if (resolvedDocTypes.has('general')) return true;
     return false;
   }, [resolvedDocTypes]);
@@ -202,6 +212,8 @@ export default function App() {
       if (resolvedDocTypes.has('isf') && (name.includes('isf') || name.includes('importer security'))) return true;
       if (resolvedDocTypes.has('invoice') && (name.includes('invoice') || name.includes('commercial') || name.includes('packing list'))) return true;
       if (resolvedDocTypes.has('msds') && (name.includes('msds') || name.includes('material safety') || name.includes('dangerous goods'))) return true;
+      if (resolvedDocTypes.has('bol') && (name.includes('bill of lading') || name.includes('bol'))) return true;
+      if (resolvedDocTypes.has('general')) return true; // general doc type covers any remaining exception
       return false;
     }).length;
     if (totalBlocking === 0) return scenario.shipment.readinessScore;
@@ -248,32 +260,126 @@ export default function App() {
     return actions;
   }, [exceptions]);
 
+  // Dynamic timeline — merge static events with real-time status updates
+  const dynamicTimeline = useMemo(() => {
+    const events = [...scenario.globalTimeline];
+    // Add executed action events
+    for (const id of executedActionIds) {
+      const exc = scenario.exceptions.find(e => e.resolutionActions.some(a => a.id === id));
+      const action = exc?.resolutionActions.find(a => a.id === id);
+      if (action && exc) {
+        events.push({
+          id: `action-${id}`,
+          timestamp: new Date().toISOString(),
+          description: `Action dispatched: ${action.label} → ${action.target}`,
+          type: 'info' as const,
+        });
+      }
+    }
+    // Add reply received events
+    for (const id of repliedActionIds) {
+      const exc = scenario.exceptions.find(e => e.resolutionActions.some(a => a.id === id));
+      const action = exc?.resolutionActions.find(a => a.id === id);
+      if (action && exc) {
+        events.push({
+          id: `reply-${id}`,
+          timestamp: new Date().toISOString(),
+          description: `Reply confirmed: ${action.label} — document received from ${action.target}`,
+          type: 'positive' as const,
+        });
+      }
+    }
+    // Add resolved exception events
+    for (const id of resolvedExceptions) {
+      const exc = scenario.exceptions.find(e => e.id === id);
+      if (exc) {
+        events.push({
+          id: `resolved-${id}`,
+          timestamp: new Date().toISOString(),
+          description: `Exception resolved: ${exc.id} — ${exc.documentName}`,
+          type: 'positive' as const,
+        });
+      }
+    }
+    return events;
+  }, [scenario, executedActionIds, repliedActionIds, resolvedExceptions]);
+
+  // Feature B: Push current nav state before navigating
+  const pushNav = useCallback(() => {
+    setNavStack(prev => {
+      const entry: NavState = { view: activeView, showShipmentList, scenarioId: activeScenarioId };
+      const next = [...prev, entry];
+      return next.length > 10 ? next.slice(-10) : next;
+    });
+  }, [activeView, showShipmentList, activeScenarioId]);
+
+  // Feature B: Go back to previous view
+  const handleBack = useCallback(() => {
+    setNavStack(prev => {
+      if (prev.length === 0) return prev;
+      const next = [...prev];
+      const entry = next.pop()!;
+      setActiveView(entry.view);
+      setShowShipmentList(entry.showShipmentList);
+      setActiveScenarioId(entry.scenarioId);
+      return next;
+    });
+  }, []);
+
   const handleViewChange = useCallback((view: ViewId) => {
+    pushNav();
     setActiveView(view);
     // Only the Shipment Overview shows the list page; sub-tabs and other views go direct
     if (view === 'overview') {
       setShowShipmentList(true);
     }
-  }, []);
+    // Clear inbox badge when navigating to email
+    if (view === 'email') {
+      setInboxHasNewReply(0);
+    }
+  }, [pushNav]);
 
   const handleSelectShipment = useCallback((id: string) => {
+    pushNav();
     setActiveScenarioId(id);
     setSelectedExceptionId(null);
-    setResolvedExceptions(new Set());
-    setExecutedActionIds(new Set());
-    lastTriggeredActionIdRef.current = null;
+    // Feature C: If re-opening a completed scenario, restore all exceptions as resolved
+    if (completedScenarios.has(id)) {
+      const sc = allScenarios.find(s => s.id === id);
+      if (sc) setResolvedExceptions(new Set(sc.exceptions.map(e => e.id)));
+    } else {
+      setResolvedExceptions(new Set());
+      setResolvedDocTypes(new Set());
+      setExecutedActionIds(new Set());
+      setRepliedActionIds(new Set());
+      lastTriggeredActionIdRef.current = null;
+      replyToActionRef.current.clear();
+
+      pendingOverrideActionRef.current = null;
+    }
+    readyAnimShownRef.current = false;
+    setShowReadyAnim(false);
+    setSeenAssessments(new Set());
     setShowShipmentList(false);
-  }, []);
+  }, [pushNav, completedScenarios, allScenarios]);
 
   const handleNavigateToScenario = useCallback((shipmentId: string) => {
     const target = allScenarios.find((s) => s.shipment.id === shipmentId);
     if (!target) return;
+    pushNav();
     setActiveScenarioId(target.id);
     setSelectedExceptionId(null);
     setResolvedExceptions(new Set());
+    setResolvedDocTypes(new Set());
+    setExecutedActionIds(new Set());
+    setRepliedActionIds(new Set());
+    lastTriggeredActionIdRef.current = null;
+    replyToActionRef.current.clear();
+
+    pendingOverrideActionRef.current = null;
     setShowShipmentList(false);
     setActiveView('overview');
-  }, [allScenarios]);
+  }, [allScenarios, pushNav]);
 
   const handleScenarioChange = useCallback((id: string) => {
     setActiveScenarioId(id);
@@ -291,76 +397,47 @@ export default function App() {
     setShowShipmentList(false);
     setInboxEmails(INITIAL_INBOX_EMAILS);
     setSentEmails([]);
-    setInboxHasNewReply(false);
+    setInboxHasNewReply(0);
     setEmailSubView('inbox');
     setResolvedDocTypes(new Set());
     setShowReadyAnim(false);
     readyAnimShownRef.current = false;
     setExecutedActionIds(new Set());
+    setRepliedActionIds(new Set());
+    setNavStack([]); // Feature B: full reset clears history
     lastTriggeredActionIdRef.current = null;
+    replyToActionRef.current.clear();
+
+    pendingOverrideActionRef.current = null;
   }, []);
 
   const handleActionForException = useCallback((exc: DocumentException, actionId: string) => {
     const action = exc.resolutionActions.find((a) => a.id === actionId);
     if (!action) return;
-    if (action.type === 'email' || action.type === 'internal') {
+    if (action.type === 'internal') {
+      // Internal actions auto-confirm — no email exchange needed
+      setExecutedActionIds((prev) => new Set([...prev, actionId]));
+      setTimeout(() => {
+        setRepliedActionIds((prev) => new Set([...prev, actionId]));
+        toast.success(`Internal action confirmed: ${action.label}`);
+      }, 800);
+      return;
+    }
+    if (action.type === 'email') {
       lastTriggeredActionIdRef.current = actionId;
+      setExecutedActionIds((prev) => new Set([...prev, actionId]));
       setActiveDrafts(exc.emailDrafts);
       setShowDraftPanel(true);
     } else if (action.type === 'escalation') {
-      setEscalationActions([
-        {
-          target: 'Export Coordinator',
-          description: 'Direct notification with full shipment context and exception log',
-          status: 'pending',
-          contact: {
-            name: 'Jennifer Walsh',
-            role: 'Senior Export Coordinator, Shanghai Hub',
-            phone: '+1 (213) 555-0192',
-            altPhone: '+1 (213) 555-0193',
-            email: 'j.walsh@globalforwarding.com',
-          },
-        },
-        {
-          target: 'Customs Broker',
-          description: 'Urgent ISF filing escalation — carrier deadline at risk',
-          status: 'pending',
-          contact: {
-            name: 'Marcus Chen',
-            role: 'Licensed Customs Broker, LA Gateway',
-            phone: '+1 (310) 555-0847',
-            altPhone: '+1 (310) 555-0848',
-            email: 'm.chen@cbpbrokers.com',
-          },
-        },
-        {
-          target: 'Trade Compliance',
-          description: 'Compliance team review and manual authorization required',
-          status: 'pending',
-          contact: {
-            name: 'Priya Nair',
-            role: 'Trade Compliance Manager',
-            phone: '+1 (415) 555-0321',
-            email: 'p.nair@tradecompliance.io',
-          },
-        },
-        {
-          target: 'Destination Region',
-          description: 'Handoff delay risk — early warning to destination ops',
-          status: 'pending',
-          contact: {
-            name: 'David Ortega',
-            role: 'Destination Ops Lead, Los Angeles',
-            phone: '+1 (323) 555-0674',
-            email: 'd.ortega@destops-lax.com',
-          },
-        },
-      ]);
       setShowEscalationModal(true);
+      setExecutedActionIds((prev) => new Set([...prev, actionId]));
     } else if (action.type === 'override') {
       setComplianceOverride({ exceptionId: exc.id, documentName: exc.documentName });
       setComplianceStatus('pending');
       setShowComplianceModal(true);
+      setExecutedActionIds((prev) => new Set([...prev, actionId]));
+      // Track this actionId so we can confirm it when the modal completes
+      pendingOverrideActionRef.current = actionId;
     }
   }, []);
 
@@ -376,84 +453,153 @@ export default function App() {
     toast.success('Exception marked as resolved. Readiness score updated.');
   }, [selectedExceptionId]);
 
-  const handleSendDraft = useCallback((tab: string, editedSubject?: string, editedBody?: string) => {
-    // Task 3: mark the action that triggered this draft panel as executed.
-    // IMPORTANT: capture the ref value into a local variable BEFORE calling setExecutedActionIds.
-    // React may run the state updater function asynchronously (after the cascade finishes and the
-    // ref has been cleared to null), so reading lastTriggeredActionIdRef.current *inside* the
-    // updater would yield null. Capturing it now ensures the correct action ID is stored.
-    if (lastTriggeredActionIdRef.current) {
-      const idToMark = lastTriggeredActionIdRef.current;
-      lastTriggeredActionIdRef.current = null;
-      setExecutedActionIds((prev) => new Set([...prev, idToMark]));
-    }
+  const handleSendDraft = useCallback((tab: string, editedSubject?: string, editedBody?: string, passedDraft?: typeof activeDrafts[0], directActionId?: string) => {
+    // Use directActionId if passed (batch Execute All), else fall back to ref (single Execute click)
+    const actionId = directActionId ?? lastTriggeredActionIdRef.current;
+    lastTriggeredActionIdRef.current = null;
 
-    const draft = activeDrafts.find((d) => d.tab === tab);
+    const draft = passedDraft ?? activeDrafts.find((d) => d.tab === tab);
     if (draft) {
       const finalDraft = {
         ...draft,
         subject: editedSubject ?? draft.subject,
         body: editedBody ?? draft.body,
       };
-      const sentId = `sent-${Date.now()}`;
+      const sentId = `sent-${Date.now()}-${sentCounterRef.current++}`;
       setSentEmails((prev) => [
         ...prev,
         { id: sentId, timestamp: new Date().toISOString(), draft: finalDraft },
       ]);
-      // Simulate reply after 2 seconds — status only resolves when this fires
+      // Simulate reply after 2 seconds — reply tracked per-action, NO auto-resolve
       setTimeout(() => {
         const reply = generateReply(finalDraft);
         setInboxEmails((prev) => [reply, ...prev]);
-        setInboxHasNewReply(true);
-        // Mark document type as resolved
-        if (reply.resolveDocType) {
-          const docType = reply.resolveDocType;
-          setResolvedDocTypes((prev) => new Set([...prev, docType]));
-          // Also auto-resolve the associated exceptions so gate check progresses
-          setResolvedExceptions((prev) => {
-            const newSet = new Set(prev);
-            scenario.exceptions.forEach((exc) => {
-              const name = exc.documentName.toLowerCase();
-              if (
-                (docType === 'isf' && (name.includes('isf') || name.includes('importer security'))) ||
-                (docType === 'invoice' && (name.includes('invoice') || name.includes('commercial') || name.includes('packing list'))) ||
-                (docType === 'msds' && (name.includes('msds') || name.includes('material safety') || name.includes('dangerous goods') || name.includes('dg '))) ||
-                (docType === 'general' && exc.blocking)
-              ) {
-                newSet.add(exc.id);
-              }
-            });
-            return newSet;
-          });
+        setInboxHasNewReply((prev) => prev + 1);
+        // Store mapping: reply email ID → action ID (confirmed when user opens reply)
+        if (actionId) {
+          replyToActionRef.current.set(reply.id, actionId);
         }
+        // Document status + action confirmation happen ONLY when user opens the reply in inbox
+        // (see onReadReply callback) — NOT here automatically
       }, 2000);
     }
-    // Task 4: Do NOT auto-close the draft panel — it stays open to show the follow-up tracker
-    // Panel is closed by user via X button (onClose → setShowDraftPanel(false))
     toast.success(`Email sent to ${tab}`);
-  }, [activeDrafts, scenario]);
+  }, [activeDrafts]);
 
   // Task 3: Send All — defined AFTER handleSendDraft to avoid TDZ error
   const handleExecuteAll = useCallback(() => {
     if (!selectedExc) return;
     const allIds = selectedExc.resolutionActions.map((a) => a.id);
     setExecutedActionIds((prev) => new Set([...prev, ...allIds]));
-    // Send all email drafts through the same pipeline (triggers 2s reply → docType resolve → readiness update)
-    selectedExc.emailDrafts.forEach((draft) => {
-      handleSendDraft(draft.tab, draft.subject, draft.body);
+    // Match each action to its draft and set ref before each send
+    selectedExc.resolutionActions.forEach((action) => {
+      // Internal actions auto-confirm immediately
+      if (action.type === 'internal') {
+        setTimeout(() => {
+          setRepliedActionIds((prev) => new Set([...prev, action.id]));
+        }, 800);
+        return;
+      }
+      // Escalation actions auto-confirm (modal not needed in Send All flow)
+      if (action.type === 'escalation') {
+        setTimeout(() => {
+          setRepliedActionIds((prev) => new Set([...prev, action.id]));
+          toast.success(`Escalation confirmed: ${action.label}`);
+        }, 1200);
+        return;
+      }
+      if (action.type !== 'email') return;
+      const draft = selectedExc.emailDrafts.find((d) => d.to === action.target || d.tab === action.target);
+      if (!draft) return;
+      handleSendDraft(draft.tab, draft.subject, draft.body, draft, action.id);
     });
     toast.success('All actions dispatched — awaiting document confirmation.');
   }, [selectedExc, handleSendDraft]);
 
-  const handleEscalate = useCallback(() => {
-    setEscalationActions((prev) => prev.map((a) => ({ ...a, status: 'sent' as const })));
-    setTimeout(() => {
-      setEscalationActions((prev) => prev.map((a) => ({ ...a, status: 'confirmed' as const })));
-      toast.success('All escalation notifications sent successfully.');
-      setTimeout(() => setShowEscalationModal(false), 1200);
-    }, 1500);
-  }, []);
+  // Quick Actions "Execute All" — batch-execute non-escalation actions from Overview page
+  const handleQuickExecuteAll = useCallback(() => {
+    const pending = quickActions.filter(
+      ({ action }) => action.type !== 'escalation' && !executedActionIds.has(action.id)
+    );
+    if (pending.length === 0) return;
 
+    // Mark all pending as executed
+    const ids = pending.map(({ action }) => action.id);
+    setExecutedActionIds((prev) => new Set([...prev, ...ids]));
+
+    // Process by type
+    pending.forEach(({ exception: exc, action }) => {
+      if (action.type === 'internal') {
+        setTimeout(() => {
+          setRepliedActionIds((prev) => new Set([...prev, action.id]));
+          toast.success(`Internal action confirmed: ${action.label}`);
+        }, 800);
+        return;
+      }
+      if (action.type === 'override') {
+        setComplianceOverride({ exceptionId: exc.id, documentName: exc.documentName });
+        setComplianceStatus('pending');
+        setShowComplianceModal(true);
+        pendingOverrideActionRef.current = action.id;
+        return;
+      }
+      if (action.type === 'email') {
+        const draft = exc.emailDrafts.find((d) => d.to === action.target || d.tab === action.target);
+        if (draft) {
+          handleSendDraft(draft.tab, draft.subject, draft.body, draft, action.id);
+        }
+      }
+    });
+    toast.success('All actions dispatched — awaiting confirmation.');
+  }, [quickActions, executedActionIds, handleSendDraft]);
+
+  // Unified escalation approval handler — called when human approves an AI-recommended action
+  const handleApproveEscalation = useCallback((option: ActionOption) => {
+    setShowEscalationModal(false);
+
+    // Build stakeholder notification drafts
+    const drafts = [
+      {
+        tab: 'Carrier Notification',
+        to: 'bookings.sha@maersk.com',
+        subject: `Action Approved - ${scenario.shipment.id} - ${option.label}`,
+        body: `Dear Maersk Booking Team,\n\nWe have approved the following escalation action for shipment ${scenario.shipment.id}:\n\nApproved Action: ${option.label}\n${option.description}\n\nExpected Resolution: ${option.resolveTime}\nCost Impact: ${option.cost}\nDelay Impact: ${option.delay}\n\nPlease confirm receipt and provide acknowledgement at your earliest convenience.\n\nRegards,\nDG Documentation Team\nGlobal Forwarding LLC`,
+      },
+      {
+        tab: 'Customer Advisory',
+        to: 'supply.chain@techretail.com',
+        subject: `Shipment Update - ${scenario.shipment.id} - Escalation Action Initiated`,
+        body: `Dear TechRetail Supply Chain Team,\n\nWe are writing to inform you that we have initiated an escalation action for your shipment PO-2024-8894 (${scenario.shipment.id}).\n\nAction Taken: ${option.label}\n${option.description}\n\nExpected Resolution Timeline: ${option.resolveTime}\nDelay Impact: ${option.delay}\n\nWe will provide updated tracking details as this progresses.\n\nBest regards,\nExport Operations\nGlobal Forwarding LLC`,
+      },
+      {
+        tab: 'Ops Coordination',
+        to: 'ops.director@globalforwarding.com',
+        subject: `ACTION APPROVED - ${scenario.shipment.id} - ${option.label}`,
+        body: `Internal Notification — Escalation Action Approved\n\nShipment: ${scenario.shipment.id}\nApproved Action: ${option.label}\nCost Impact: ${option.cost}\nDelay Impact: ${option.delay}\nExpected Resolution: ${option.resolveTime}\n\nAction Required:\n- Update all downstream systems\n- Notify warehouse receiving team at destination\n- Confirm with carrier within 2 hours\n\nDecision logged to audit trail.\n\nRegards,\nExport Coordination`,
+      },
+    ];
+
+    setActiveDrafts(drafts);
+    setShowDraftPanel(true);
+
+    // Resolve exceptions: if a specific exception is selected, resolve it;
+    // otherwise (e.g. Risk Banner war room), resolve all unresolved exceptions
+    if (selectedExc) {
+      const allIds = selectedExc.resolutionActions.map((a) => a.id);
+      setExecutedActionIds((prev) => new Set([...prev, ...allIds]));
+      setRepliedActionIds((prev) => new Set([...prev, ...allIds]));
+      setResolvedExceptions((prev) => new Set([...prev, selectedExc.id]));
+    } else {
+      const unresolvedExcs = exceptions.filter((e) => e.status !== 'resolved');
+      const allIds = unresolvedExcs.flatMap((e) => e.resolutionActions.map((a) => a.id));
+      const allExcIds = unresolvedExcs.map((e) => e.id);
+      setExecutedActionIds((prev) => new Set([...prev, ...allIds]));
+      setRepliedActionIds((prev) => new Set([...prev, ...allIds]));
+      setResolvedExceptions((prev) => new Set([...prev, ...allExcIds]));
+    }
+
+    toast.success(`Action approved: ${option.label}`);
+  }, [scenario, selectedExc, exceptions]);
   const buildAiReasoning = useCallback((): AiReasoning => {
     const criticalExcs = exceptions.filter((e) => e.severity === 'critical' && e.status !== 'resolved');
     const hoursLeft = scenario.shipment.cutoffHours;
@@ -490,66 +636,6 @@ export default function App() {
   }, [scenario, exceptions]);
 
   const handleRiskEscalate = useCallback(() => {
-    setEscalationActions([
-      {
-        target: 'Export Coordinator',
-        description: 'Direct notification with full shipment context and exception log',
-        status: 'pending',
-        contact: {
-          name: 'Jennifer Walsh',
-          role: 'Senior Export Coordinator, Shanghai Hub',
-          phone: '+1 (213) 555-0192',
-          altPhone: '+1 (213) 555-0193',
-          email: 'j.walsh@globalforwarding.com',
-        },
-      },
-      {
-        target: 'Customs Broker',
-        description: 'Urgent ISF filing escalation — vessel departure in 4 hours',
-        status: 'pending',
-        contact: {
-          name: 'Marcus Chen',
-          role: 'Licensed Customs Broker, LA Gateway',
-          phone: '+1 (310) 555-0847',
-          altPhone: '+1 (310) 555-0848',
-          email: 'm.chen@cbpbrokers.com',
-        },
-      },
-      {
-        target: 'Trade Compliance',
-        description: 'Manual sign-off — CBP penalty risk, authorization required',
-        status: 'pending',
-        contact: {
-          name: 'Priya Nair',
-          role: 'Trade Compliance Manager',
-          phone: '+1 (415) 555-0321',
-          email: 'p.nair@tradecompliance.io',
-        },
-      },
-      {
-        target: 'Destination Region',
-        description: 'Handoff delay risk — early warning to destination ops',
-        status: 'pending',
-        contact: {
-          name: 'David Ortega',
-          role: 'Destination Ops Lead, Los Angeles',
-          phone: '+1 (323) 555-0674',
-          email: 'd.ortega@destops-lax.com',
-        },
-      },
-      {
-        target: 'VP Operations',
-        description: 'Executive escalation — revenue impact & customer SLA breach',
-        status: 'pending',
-        contact: {
-          name: 'Sarah Kim',
-          role: 'VP Operations, North America',
-          phone: '+1 (646) 555-0912',
-          altPhone: '+1 (646) 555-0913',
-          email: 's.kim@operations.globalforwarding.com',
-        },
-      },
-    ]);
     setShowEscalationModal(true);
   }, []);
 
@@ -571,10 +657,46 @@ export default function App() {
     }
   }, [exceptions]);
 
+  // Resolve exceptions when a document is uploaded and AI-validated
+  const handleUploadComplete = useCallback((uploadedFileName: string) => {
+    const n = uploadedFileName.toLowerCase();
+    let docType: ResolveDocType | null = null;
+    if (n.includes('isf') || n.includes('importer')) docType = 'isf';
+    else if (n.includes('bol') || n.includes('lading')) docType = 'bol';
+    else if (n.includes('invoice')) docType = 'invoice';
+    else if (n.includes('msds') || n.includes('material')) docType = 'msds';
+    else docType = 'general';
+
+    if (docType) setResolvedDocTypes((prev) => new Set([...prev, docType!]));
+
+    // Find and directly resolve all matching open exceptions
+    const matchingExcs = scenario.exceptions.filter((exc) => {
+      if (resolvedExceptions.has(exc.id)) return false;
+      const name = exc.documentName.toLowerCase();
+      if (docType === 'isf') return name.includes('isf') || name.includes('importer security');
+      if (docType === 'bol') return name.includes('bill of lading') || name.includes('bol');
+      if (docType === 'invoice') return name.includes('invoice') || name.includes('commercial');
+      if (docType === 'msds') return name.includes('msds') || name.includes('material safety');
+      return true;
+    });
+
+    matchingExcs.forEach((exc) => {
+      const allIds = exc.resolutionActions.map((a) => a.id);
+      setExecutedActionIds((prev) => new Set([...prev, ...allIds]));
+      setRepliedActionIds((prev) => new Set([...prev, ...allIds]));
+      setResolvedExceptions((prev) => new Set([...prev, exc.id]));
+      toast.success(`${exc.documentName} — uploaded & AI-validated. Exception resolved.`);
+    });
+
+    if (matchingExcs.length === 0) {
+      toast.success(`${uploadedFileName} — document processed and matched.`);
+    }
+  }, [scenario.exceptions, resolvedExceptions]);
+
   // Clear inbox notification when user navigates to email inbox
   useEffect(() => {
     if (activeView === 'email' && emailSubView === 'inbox') {
-      setInboxHasNewReply(false);
+      setInboxHasNewReply(0);
     }
   }, [activeView, emailSubView]);
 
@@ -609,22 +731,81 @@ export default function App() {
 
   const receivedCount = enhancedDocuments.filter((d) => d.status !== 'missing' && d.status !== 'pending').length;
 
-  // Trigger happy path animation when all gates pass
+  // Auto-navigate from Documents → Overview when readiness reaches 100%
   useEffect(() => {
-    const allReady =
-      adjustedReadiness >= 100 &&
-      openBlockingCount === 0 &&
-      enhancedDocuments.every((d) => d.status !== 'missing' && d.status !== 'pending');
-    const inDetailView =
-      !showShipmentList &&
-      activeView !== 'dashboard' &&
-      activeView !== 'analytics' &&
-      activeView !== 'email';
-    if (allReady && inDetailView && !readyAnimShownRef.current) {
-      readyAnimShownRef.current = true;
-      setTimeout(() => setShowReadyAnim(true), 500);
+    if (activeView === 'documents' && adjustedReadiness >= 100 && !showShipmentList) {
+      const timer = setTimeout(() => {
+        pushNav();
+        setActiveView('overview');
+        toast.info('Readiness 100% — navigating to Shipment Overview.');
+      }, 1200);
+      return () => clearTimeout(timer);
     }
-  }, [adjustedReadiness, openBlockingCount, enhancedDocuments, showShipmentList, activeView]);
+  }, [activeView, adjustedReadiness, showShipmentList, pushNav]);
+
+  // Auto-resolve exceptions when all relevant actions are confirmed
+  // Escalation actions that were intentionally skipped (never executed) are treated as "ok"
+  // so they don't block resolution when user chose Execute All which skips them
+  useEffect(() => {
+    scenario.exceptions.forEach((exc) => {
+      if (resolvedExceptions.has(exc.id)) return; // already resolved
+      if (exc.resolutionActions.length === 0) return; // no actions to confirm
+      // Must have at least one executed action before auto-resolving
+      const hasAnyExecuted = exc.resolutionActions.some((a) => executedActionIds.has(a.id));
+      if (!hasAnyExecuted) return;
+      // Each action is "confirmed" if: (a) reply was received, OR (b) it's an escalation/override
+      // that was never executed (intentionally skipped by Execute All)
+      const allConfirmed = exc.resolutionActions.every(
+        (a) => repliedActionIds.has(a.id) || (
+          (a.type === 'escalation' || a.type === 'override') && !executedActionIds.has(a.id)
+        )
+      );
+      if (allConfirmed) {
+        setResolvedExceptions((prev) => new Set([...prev, exc.id]));
+        toast.success(`${exc.documentName} — all actions confirmed, exception resolved.`);
+      }
+    });
+  }, [scenario.exceptions, repliedActionIds, resolvedExceptions, executedActionIds]);
+
+  // Trigger happy path: all exceptions resolved → navigate to overview → 2s pause → animation
+  useEffect(() => {
+    const allExceptionsResolved =
+      scenario.exceptions.length > 0 &&
+      scenario.exceptions.every((e) => resolvedExceptions.has(e.id));
+    if (!allExceptionsResolved || showShipmentList || readyAnimShownRef.current) return;
+    // Don't auto-navigate from email view — user must manually click "View Updated Document Status"
+    // to go to Documents → which auto-navigates to Overview where happy path triggers
+    const isBlockedView = activeView === 'dashboard' || activeView === 'analytics' || activeView === 'email';
+    if (isBlockedView) return;
+
+    // Step 1: Navigate to Shipment Overview if not already there (from exceptions/documents/etc.)
+    if (activeView !== 'overview') {
+      setActiveView('overview');
+      toast.info('All exceptions resolved — navigating to Shipment Overview.');
+      return; // wait for re-render on overview before showing animation
+    }
+    // Step 2: On overview — pause 2s then show ready animation
+    readyAnimShownRef.current = true;
+    const timer = setTimeout(() => setShowReadyAnim(true), 2000);
+    return () => clearTimeout(timer);
+  }, [scenario, resolvedExceptions, showShipmentList, activeView]);
+
+  // Feature C: Handle handoff completion — dismiss anim, mark scenario done, navigate to list
+  const handleHandoffComplete = useCallback(() => {
+    setShowReadyAnim(false);
+    setCompletedScenarios(prev => new Set([...prev, activeScenarioId]));
+    setShowShipmentList(true);
+    setActiveView('overview');
+    setNavStack([]); // clear history — we're resetting to list
+    toast.success(`${scenario.shipment.id} cleared for handoff.`);
+  }, [activeScenarioId, scenario]);
+
+  // Feature C: Auto-dismiss ready animation after 3 seconds
+  useEffect(() => {
+    if (!showReadyAnim) return;
+    const timer = setTimeout(handleHandoffComplete, 3000);
+    return () => clearTimeout(timer);
+  }, [showReadyAnim, handleHandoffComplete]);
 
   // Format live countdown seconds as H:MM:SS
   const formatLiveSecs = (secs: number): string => {
@@ -711,6 +892,17 @@ export default function App() {
 
         <div className="flex-1 overflow-y-auto bg-muted/30 p-4">
 
+          {/* Feature B: Universal back button — visible on ALL views when history exists */}
+          {navStack.length > 0 && (
+            <button
+              onClick={handleBack}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors group mb-2"
+            >
+              <ChevronLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
+              <span>Back</span>
+            </button>
+          )}
+
           {/* DASHBOARD */}
           {activeView === 'dashboard' && <DashboardView onNavigateToScenario={handleNavigateToScenario} />}
 
@@ -731,6 +923,18 @@ export default function App() {
                   prev.map((e) => (e.id === id ? { ...e, read: true } : e))
                 )
               }
+              onReadReply={(emailId) => {
+                // Confirm the action linked to this reply
+                const actionId = replyToActionRef.current.get(emailId);
+                if (actionId) {
+                  setRepliedActionIds((prev) => new Set([...prev, actionId]));
+                }
+                // Update document status based on the reply's doc type
+                const replyEmail = inboxEmails.find((e) => e.id === emailId);
+                if (replyEmail?.resolveDocType) {
+                  setResolvedDocTypes((prev) => new Set([...prev, replyEmail.resolveDocType!]));
+                }
+              }}
               onNavigateDocuments={() => {
                 setActiveView('documents');
                 setShowShipmentList(false);
@@ -743,6 +947,7 @@ export default function App() {
             <ShipmentListView
               scenarios={allScenarios}
               resolvedExceptions={resolvedExceptions}
+              completedScenarios={completedScenarios}
               onSelect={handleSelectShipment}
             />
           )}
@@ -750,14 +955,6 @@ export default function App() {
           {/* SHIPMENT VIEWS — Detail */}
           {activeView !== 'dashboard' && activeView !== 'analytics' && activeView !== 'email' && !showShipmentList && (
             <div className="space-y-3">
-              {/* Back breadcrumb */}
-              <button
-                onClick={() => setShowShipmentList(true)}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors group"
-              >
-                <ChevronLeft className="h-3.5 w-3.5 group-hover:-translate-x-0.5 transition-transform" />
-                <span>All Shipments</span>
-              </button>
 
               {/* OVERVIEW — Command Center */}
               {activeView === 'overview' && (
@@ -831,7 +1028,7 @@ export default function App() {
                   <div className="grid grid-cols-12 gap-2">
                     <div className="col-span-8 space-y-2">
                       <RequiredDocsChecklist documents={enhancedDocuments} laneRequirements={scenario.laneRequirements} />
-                      <DocumentUploadZone compact onUploadComplete={() => toast.success('Document processed. Matching updated.')} />
+                      <DocumentUploadZone compact onUploadComplete={handleUploadComplete} />
                     </div>
                     <div className="col-span-4 space-y-2">
                       <MatchingSummaryCard summary={dynamicMatchingSummary} />
@@ -913,7 +1110,20 @@ export default function App() {
                     <div className="col-span-4">
                       <Card className="rounded-lg shadow-sm h-full">
                         <CardHeader className="border-b border-border">
-                          <CardTitle>Quick Actions</CardTitle>
+                          <div className="flex items-center justify-between">
+                            <CardTitle>Quick Actions</CardTitle>
+                            {quickActions.filter(({ action }) => action.type !== 'escalation' && !executedActionIds.has(action.id)).length > 0 && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 text-[10px] font-semibold bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                                onClick={handleQuickExecuteAll}
+                              >
+                                <Zap className="h-3 w-3 mr-1" />
+                                Execute All
+                              </Button>
+                            )}
+                          </div>
                         </CardHeader>
                         <CardContent className="pt-3">
                           {quickActions.length === 0 ? (
@@ -923,22 +1133,36 @@ export default function App() {
                               {quickActions.map(({ exception: exc, action }) => {
                                 const cfg = actionConfig[action.type];
                                 const Icon = cfg.icon;
+                                const isExecuted = executedActionIds.has(action.id);
+                                const isReplied = repliedActionIds.has(action.id);
                                 return (
-                                  <div key={`${exc.id}-${action.id}`} className={cn('rounded-md border p-2', cfg.border, cfg.bg)}>
+                                  <div key={`${exc.id}-${action.id}`} className={cn('rounded-md border p-2', isReplied ? 'border-emerald-300 bg-emerald-50/40' : isExecuted ? 'border-amber-300 bg-amber-50/40' : cfg.border, !isExecuted && !isReplied && cfg.bg)}>
                                     <div className="flex items-start gap-2">
-                                      <Icon className={cn('h-3.5 w-3.5 mt-0.5 shrink-0', cfg.accent)} />
+                                      <Icon className={cn('h-3.5 w-3.5 mt-0.5 shrink-0', isReplied ? 'text-emerald-600' : isExecuted ? 'text-amber-600' : cfg.accent)} />
                                       <div className="flex-1 min-w-0">
                                         <p className="text-xs font-medium text-foreground truncate">{action.label}</p>
                                         <p className="text-[10px] text-muted-foreground mt-0.5 truncate">{exc.documentName} → {action.target}</p>
                                       </div>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className={cn('shrink-0 h-6 px-2 text-[10px] font-medium', cfg.btnBg, cfg.btnText)}
-                                        onClick={() => handleActionForException(exc, action.id)}
-                                      >
-                                        Execute
-                                      </Button>
+                                      {isReplied ? (
+                                        <span className="shrink-0 h-6 px-2 text-[10px] font-semibold text-emerald-700 bg-emerald-100 rounded flex items-center gap-1">
+                                          <CheckCircle2 className="h-3 w-3" />
+                                          Confirmed
+                                        </span>
+                                      ) : isExecuted ? (
+                                        <span className="shrink-0 h-6 px-2 text-[10px] font-semibold text-amber-700 bg-amber-100 rounded flex items-center gap-1">
+                                          <Clock className="h-3 w-3 animate-pulse" />
+                                          Pending
+                                        </span>
+                                      ) : (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className={cn('shrink-0 h-6 px-2 text-[10px] font-medium', cfg.btnBg, cfg.btnText)}
+                                          onClick={() => handleActionForException(exc, action.id)}
+                                        >
+                                          Execute
+                                        </Button>
+                                      )}
                                     </div>
                                   </div>
                                 );
@@ -956,10 +1180,10 @@ export default function App() {
                           <CardTitle>Recent Events</CardTitle>
                         </CardHeader>
                         <CardContent className="pt-3 max-h-[220px] overflow-y-auto">
-                          {scenario.globalTimeline.length === 0 ? (
+                          {dynamicTimeline.length === 0 ? (
                             <p className="text-xs text-muted-foreground text-center py-6">No events yet</p>
                           ) : (
-                            <ResolutionTimeline events={scenario.globalTimeline.slice(-6)} />
+                            <ResolutionTimeline events={dynamicTimeline.slice(-6)} />
                           )}
                         </CardContent>
                       </Card>
@@ -1004,13 +1228,13 @@ export default function App() {
                     </div>
                     <ExceptionTable exceptions={exceptions} selectedId={selectedExceptionId} onSelect={(id) => setSelectedExceptionId(id)} />
                   </Card>
-                  {scenario.globalTimeline.length > 0 && (
+                  {dynamicTimeline.length > 0 && (
                     <Card className="rounded-lg shadow-sm">
                       <div className="border-b border-border px-4 py-2.5">
                         <h3 className="text-sm font-semibold text-foreground">Resolution History</h3>
                       </div>
                       <CardContent className="pt-3">
-                        <ResolutionTimeline events={scenario.globalTimeline} />
+                        <ResolutionTimeline events={dynamicTimeline} />
                       </CardContent>
                     </Card>
                   )}
@@ -1020,18 +1244,36 @@ export default function App() {
               {/* DOCUMENTS */}
               {activeView === 'documents' && (
                 <div className="space-y-3">
+                  {/* Shipment info strip with transport mode */}
+                  <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-2">
+                    <code className="text-xs font-bold font-mono text-foreground">{scenario.shipment.id}</code>
+                    {(() => {
+                      const modeCfg = getTransportModeCfg(scenario.shipment.mode);
+                      const ModeIcon = modeCfg.Icon;
+                      return (
+                        <span className={cn('inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold shrink-0', modeCfg.bg, modeCfg.border, modeCfg.color)}>
+                          <ModeIcon className="h-3 w-3" />
+                          {modeCfg.label}
+                        </span>
+                      );
+                    })()}
+                    <span className="text-xs text-muted-foreground">
+                      {scenario.shipment.origin.port} → {scenario.shipment.destination.port}
+                    </span>
+                    <span className="text-xs text-muted-foreground/50">|</span>
+                    <span className="text-xs text-muted-foreground">{scenario.shipment.carrier} / {scenario.shipment.vessel}</span>
+                  </div>
+
                   <div className="grid grid-cols-12 gap-3">
                     <div className="col-span-8">
                       <RequiredDocsChecklist documents={enhancedDocuments} laneRequirements={scenario.laneRequirements} />
                     </div>
                     <div className="col-span-4 space-y-3">
                       <MatchingSummaryCard summary={dynamicMatchingSummary} />
-                      <div className="flex justify-center">
-                        <ReadinessScore score={adjustedReadiness} label={`${receivedCount} of ${enhancedDocuments.length} documents`} />
-                      </div>
+                      <ReadinessScore score={adjustedReadiness} label={`${receivedCount} of ${enhancedDocuments.length} documents`} large />
                     </div>
                   </div>
-                  <DocumentUploadZone onUploadComplete={() => toast.success('Document processed. Matching updated.')} />
+                  <DocumentUploadZone onUploadComplete={handleUploadComplete} />
                   <Card className="rounded-lg shadow-sm">
                     <CardHeader className="border-b border-border">
                       <CardTitle>Gate Check</CardTitle>
@@ -1076,20 +1318,20 @@ export default function App() {
                   <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
                     <h3 className="text-sm font-semibold text-foreground">Resolution Timeline</h3>
                     <div className="flex items-center gap-4 text-xs">
-                      <span className="text-muted-foreground"><span className="font-semibold text-foreground">{scenario.globalTimeline.length}</span> events</span>
-                      {scenario.globalTimeline.filter((e) => e.type === 'critical').length > 0 && (
-                        <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-red-500" /><span className="font-medium text-red-600">{scenario.globalTimeline.filter((e) => e.type === 'critical').length} critical</span></span>
+                      <span className="text-muted-foreground"><span className="font-semibold text-foreground">{dynamicTimeline.length}</span> events</span>
+                      {dynamicTimeline.filter((e) => e.type === 'critical').length > 0 && (
+                        <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-red-500" /><span className="font-medium text-red-600">{dynamicTimeline.filter((e) => e.type === 'critical').length} critical</span></span>
                       )}
-                      {scenario.globalTimeline.filter((e) => e.type === 'warning').length > 0 && (
-                        <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" /><span className="font-medium text-amber-600">{scenario.globalTimeline.filter((e) => e.type === 'warning').length} warnings</span></span>
+                      {dynamicTimeline.filter((e) => e.type === 'warning').length > 0 && (
+                        <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" /><span className="font-medium text-amber-600">{dynamicTimeline.filter((e) => e.type === 'warning').length} warnings</span></span>
                       )}
-                      {scenario.globalTimeline.filter((e) => e.type === 'positive').length > 0 && (
-                        <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-green-500" /><span className="font-medium text-green-600">{scenario.globalTimeline.filter((e) => e.type === 'positive').length} resolved</span></span>
+                      {dynamicTimeline.filter((e) => e.type === 'positive').length > 0 && (
+                        <span className="flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-green-500" /><span className="font-medium text-green-600">{dynamicTimeline.filter((e) => e.type === 'positive').length} resolved</span></span>
                       )}
                     </div>
                   </div>
                   <CardContent className="pt-3">
-                    <ResolutionTimeline events={scenario.globalTimeline} />
+                    <ResolutionTimeline events={dynamicTimeline} />
                   </CardContent>
                 </Card>
               )}
@@ -1117,7 +1359,10 @@ export default function App() {
             onAction={handleAction}
             onResolve={handleResolve}
             executedActionIds={executedActionIds}
+            repliedActionIds={repliedActionIds}
             onExecuteAll={handleExecuteAll}
+            hasSeenAssessment={seenAssessments.has(selectedExc.id)}
+            onAssessmentSeen={(id) => setSeenAssessments(prev => new Set([...prev, id]))}
           />
         )}
       </AnimatePresence>
@@ -1140,9 +1385,12 @@ export default function App() {
       {/* Escalation Modal */}
       <AnimatePresence>
         {showEscalationModal && (
-          <EscalationModal shipmentId={scenario.shipment.id} actions={escalationActions}
-            onClose={() => setShowEscalationModal(false)} onExecute={handleEscalate}
-            aiReasoning={buildAiReasoning()} />
+          <EscalationModal
+            shipmentId={scenario.shipment.id}
+            aiReasoning={buildAiReasoning()}
+            onClose={() => setShowEscalationModal(false)}
+            onApprove={handleApproveEscalation}
+          />
         )}
       </AnimatePresence>
 
@@ -1190,6 +1438,12 @@ export default function App() {
                       setTimeout(() => {
                         setComplianceStatus('approved');
                         toast.success('Override approved by Trade Compliance. Exception updated.');
+                        // Confirm the override action
+                        if (pendingOverrideActionRef.current) {
+                          const aid = pendingOverrideActionRef.current;
+                          pendingOverrideActionRef.current = null;
+                          setRepliedActionIds((prev) => new Set([...prev, aid]));
+                        }
                         setTimeout(() => {
                           setShowComplianceModal(false);
                           if (override) { setResolvedExceptions((prev) => new Set([...prev, override.exceptionId])); setSelectedExceptionId(null); }
@@ -1286,7 +1540,7 @@ export default function App() {
           <ReadyAnimation
             shipmentId={scenario.shipment.id}
             totalDocs={enhancedDocuments.length}
-            onDismiss={() => setShowReadyAnim(false)}
+            onDismiss={handleHandoffComplete}
           />
         )}
       </AnimatePresence>

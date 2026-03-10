@@ -60,8 +60,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               <Globe size={20} className="text-blue-400" />
             </div>
             <div>
-              <p className="text-white font-bold text-lg leading-none">DocFlow</p>
-              <p className="text-slate-400 text-xs">Trade Document Intelligence</p>
+              <p className="text-white font-bold text-sm leading-tight">Cross Region Document<br />Handoff Agent</p>
+              <p className="text-slate-400 text-[10px]">AI-Powered Trade Intelligence</p>
             </div>
           </div>
 
@@ -94,7 +94,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
         <div className="mt-12 border-t border-slate-700/60 pt-6">
           <p className="text-slate-500 text-xs">Demo environment · All data is fictitious</p>
-          <p className="text-slate-600 text-[11px] mt-1">DocFlow v2.4 · Powered by AI</p>
+          <p className="text-slate-600 text-[11px] mt-1">Cross Region Agent v2.4 · Powered by AI</p>
         </div>
       </motion.div>
 
@@ -108,7 +108,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         >
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-slate-900">Sign in</h2>
-            <p className="mt-1 text-sm text-slate-500">Access your DocFlow workspace</p>
+            <p className="mt-1 text-sm text-slate-500">Access your workspace</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">

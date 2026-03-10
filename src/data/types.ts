@@ -103,7 +103,7 @@ export interface LaneRequirement {
   regulations: string[];
 }
 
-export type ResolveDocType = 'isf' | 'invoice' | 'msds' | 'general';
+export type ResolveDocType = 'isf' | 'invoice' | 'msds' | 'bol' | 'general';
 
 export interface EmailAttachment {
   name: string;
