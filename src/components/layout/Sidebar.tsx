@@ -177,7 +177,7 @@ export function Sidebar({
           <FileCheck size={14} className="text-primary-foreground" />
         </div>
         <span className="text-[9px] font-semibold text-sidebar-accent-foreground tracking-tight leading-snug">
-          Cross Region Document Handoff Agent
+          Operations Readiness Manager
         </span>
       </div>
 

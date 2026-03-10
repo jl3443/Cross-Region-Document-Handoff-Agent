@@ -60,7 +60,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               <Globe size={20} className="text-blue-400" />
             </div>
             <div>
-              <p className="text-white font-bold text-sm leading-tight">Cross Region Document<br />Handoff Agent</p>
+              <p className="text-white font-bold text-sm leading-tight">Operations Readiness Manager</p>
               <p className="text-slate-400 text-[10px]">AI-Powered Trade Intelligence</p>
             </div>
           </div>
