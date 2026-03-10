@@ -29,6 +29,7 @@ import { RequiredDocsChecklist } from '@/components/shipment/RequiredDocsCheckli
 import { MatchingSummaryCard } from '@/components/shipment/MatchingSummaryCard';
 import { ReadinessScore } from '@/components/shipment/ReadinessScore';
 import { ShipmentListView } from '@/components/shipment/ShipmentListView';
+import { HitlPanel } from '@/components/hitl/HitlPanel';
 
 import { ExceptionTable } from '@/components/exceptions/ExceptionTable';
 import { ExceptionDetailPanel, actionConfig } from '@/components/exceptions/ExceptionDetailPanel';
@@ -886,6 +887,19 @@ export default function App() {
                       </Card>
                     </div>
                   </div>
+
+                  {/* Row 4: Human-in-the-Loop */}
+                  <HitlPanel
+                    exceptions={exceptions}
+                    scenario={scenario}
+                    tradeSignOff={tradeSignOff}
+                    onEscalate={handleRiskEscalate}
+                    onComplianceOverride={(exceptionId, documentName) => {
+                      setComplianceOverride({ exceptionId, documentName });
+                      setShowComplianceModal(true);
+                    }}
+                    onTradeSignOff={() => setTradeSignOff(true)}
+                  />
                 </div>
               )}
 
@@ -1168,7 +1182,7 @@ export default function App() {
                     </div>
                   )}
                   <Button className="w-full bg-green-600 hover:bg-green-700 text-white gap-2"
-                    onClick={() => { setShowDocPack(false); toast.success('Final doc pack assembled and handoff milestone marked complete in OTM.'); }}>
+                    onClick={() => { setShowDocPack(false); toast.success(`OTM Milestone Updated: "Document Handoff Complete" — ${scenario.shipment.id}`); }}>
                     <Package className="h-4 w-4" />
                     Complete Handoff to Destination
                   </Button>

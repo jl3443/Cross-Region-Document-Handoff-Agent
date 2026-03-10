@@ -8,6 +8,12 @@ import {
   AlertCircle,
   Ban,
   CheckCircle2,
+  ShieldAlert,
+  ScanLine,
+  Bell,
+  PackageCheck,
+  Flame,
+  ClipboardCheck,
 } from 'lucide-react';
 import {
   BarChart,
@@ -50,11 +56,37 @@ const statusColors: Record<string, string> = {
   resolved: 'bg-green-100 text-green-700',
 };
 
+const AI_FEATURES = [
+  { icon: ScanLine,      label: 'Completeness Check',   desc: 'Scans docs against lane & country requirements',       color: 'text-blue-600 bg-blue-50' },
+  { icon: ClipboardCheck,label: 'PO / Shipment Match',  desc: 'Cross-references every field vs SAP PO & OTM',         color: 'text-violet-600 bg-violet-50' },
+  { icon: Bell,          label: 'Auto Reminders',        desc: 'Automated follow-ups for pending / missing docs',      color: 'text-amber-600 bg-amber-50' },
+  { icon: PackageCheck,  label: 'Doc Pack Creation',     desc: 'Assembles validated package meeting all requirements', color: 'text-green-600 bg-green-50' },
+  { icon: Flame,         label: 'Hazmat Handling',       desc: 'Detects DG classification; ensures MSDS & DG forms',  color: 'text-orange-600 bg-orange-50' },
+];
+
 export function DashboardView() {
   return (
     <div className="space-y-2">
       {/* AI Insights Hero */}
       <AiInsightsCard />
+
+      {/* AI E2E Feature Strip */}
+      <div className="grid grid-cols-5 gap-2">
+        {AI_FEATURES.map((f) => {
+          const Icon = f.icon;
+          return (
+            <div key={f.label} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 flex items-start gap-2.5 shadow-sm">
+              <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${f.color}`}>
+                <Icon size={14} />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold text-slate-700 leading-tight">{f.label}</p>
+                <p className="mt-0.5 text-[10px] text-slate-400 leading-snug">{f.desc}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* KPI Row 1: 6 main metrics */}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
@@ -66,11 +98,13 @@ export function DashboardView() {
         <KpiCard title="Avg Resolution" value={kpiData.avgResolutionTime} suffix="h" icon={Timer} iconBgColor="bg-cyan-100" iconColor="text-cyan-600" trend={kpiTrends.avgResolutionTime} />
       </div>
 
-      {/* KPI Row 2: 3 status metrics */}
-      <div className="grid grid-cols-3 gap-2">
+      {/* KPI Row 2: 5 status metrics (inc. Doc Error Rate & SLA Adherence) */}
+      <div className="grid grid-cols-5 gap-2">
         <KpiCard title="Shipments At Risk" value={kpiData.shipmentsAtRisk} icon={AlertCircle} iconBgColor="bg-orange-100" iconColor="text-orange-600" trend={kpiTrends.shipmentsAtRisk} />
         <KpiCard title="Blocked Handoffs" value={kpiData.blockedHandoffs} icon={Ban} iconBgColor="bg-red-100" iconColor="text-red-600" trend={kpiTrends.blockedHandoffs} />
         <KpiCard title="Completed Today" value={kpiData.completedToday} icon={CheckCircle2} iconBgColor="bg-green-100" iconColor="text-green-600" trend={kpiTrends.completedToday} />
+        <KpiCard title="Document Error Rate" value={kpiData.documentErrorRate} suffix="%" icon={ShieldAlert} iconBgColor="bg-rose-100" iconColor="text-rose-600" trend={kpiTrends.documentErrorRate} />
+        <KpiCard title="SLA Adherence" value={kpiData.slaAdherence} suffix="%" icon={ClipboardCheck} iconBgColor="bg-teal-100" iconColor="text-teal-600" trend={kpiTrends.slaAdherence} />
       </div>
 
       {/* Charts Row */}

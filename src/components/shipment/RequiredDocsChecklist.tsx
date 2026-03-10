@@ -1,6 +1,18 @@
-import { CheckCircle2, AlertTriangle, Circle, XCircle, Bell, Flame, Globe } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Circle, XCircle, Bell, Flame, Globe, Database, Server, Mail, Building2 } from 'lucide-react';
 import type { RequiredDocument, DocStatus, LaneRequirement } from '../../data/types';
 import { cn } from '../../lib/utils';
+
+function getSourceBadge(source: string): { label: string; className: string; Icon: React.ElementType } {
+  const s = source.toLowerCase();
+  if (s.includes('sap'))             return { label: 'SAP',            className: 'bg-blue-100 text-blue-700',     Icon: Database };
+  if (s.includes('otm'))             return { label: 'OTM',            className: 'bg-teal-100 text-teal-700',     Icon: Server };
+  if (s.includes('edi'))             return { label: 'EDI',            className: 'bg-violet-100 text-violet-700', Icon: Server };
+  if (s.includes('carrier portal'))  return { label: 'Carrier Portal', className: 'bg-sky-100 text-sky-700',       Icon: Building2 };
+  if (s.includes('broker portal'))   return { label: 'Broker Portal',  className: 'bg-indigo-100 text-indigo-700', Icon: Building2 };
+  if (s.includes('supplier portal')) return { label: 'Supplier Portal', className: 'bg-orange-100 text-orange-700', Icon: Building2 };
+  if (s.includes('email'))           return { label: 'Email',          className: 'bg-slate-100 text-slate-600',   Icon: Mail };
+  return                                    { label: source,           className: 'bg-slate-100 text-slate-600',   Icon: Globe };
+}
 
 interface RequiredDocsChecklistProps {
   documents: RequiredDocument[];
@@ -126,9 +138,16 @@ export function RequiredDocsChecklist({ documents, laneRequirements }: RequiredD
                   {doc.name}
                 </p>
                 <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
-                  {doc.source && (
-                    <p className="text-[11px] text-slate-400">{doc.source}</p>
-                  )}
+                  {doc.source && (() => {
+                    const badge = getSourceBadge(doc.source!);
+                    const BadgeIcon = badge.Icon;
+                    return (
+                      <span className={cn('inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold', badge.className)}>
+                        <BadgeIcon size={9} />
+                        {badge.label}
+                      </span>
+                    );
+                  })()}
                   {doc.dgClassification && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2 py-0.5 text-[10px] font-bold text-orange-700">
                       <Flame size={10} />

@@ -38,7 +38,7 @@ const scenario1: Scenario = {
       fileName: 'CI_PO8891_20240315.pdf',
       status: 'validated',
       receivedAt: '2024-03-14T08:22:00Z',
-      source: 'Supplier Portal',
+      source: 'SAP — Supplier Portal',
       ocrConfidence: 97,
     },
     {
@@ -47,7 +47,7 @@ const scenario1: Scenario = {
       fileName: 'PL_PO8891_20240315.pdf',
       status: 'validated',
       receivedAt: '2024-03-14T08:22:00Z',
-      source: 'Supplier Portal',
+      source: 'SAP — Supplier Portal',
       ocrConfidence: 95,
     },
     {
@@ -56,7 +56,7 @@ const scenario1: Scenario = {
       fileName: 'BOL_MSKU7294810.pdf',
       status: 'validated',
       receivedAt: '2024-03-14T14:05:00Z',
-      source: 'Carrier EDI',
+      source: 'EDI — Maersk Carrier',
       ocrConfidence: 99,
     },
     {
@@ -65,7 +65,7 @@ const scenario1: Scenario = {
       fileName: 'COO_PO8891.pdf',
       status: 'validated',
       receivedAt: '2024-03-14T10:30:00Z',
-      source: 'Email - supplier@lcdglobal.cn',
+      source: 'Email — Forwarder',
       ocrConfidence: 93,
     },
     {
@@ -318,7 +318,7 @@ const scenario2: Scenario = {
       fileName: 'CI_PO7763_20240318.pdf',
       status: 'mismatch',
       receivedAt: '2024-03-17T09:15:00Z',
-      source: 'Email - export@zhengda-valves.cn',
+      source: 'SAP — Supplier Portal',
       ocrConfidence: 96,
     },
     {
@@ -327,7 +327,7 @@ const scenario2: Scenario = {
       fileName: 'PL_PO7763_20240318.pdf',
       status: 'mismatch',
       receivedAt: '2024-03-17T09:15:00Z',
-      source: 'Email - export@zhengda-valves.cn',
+      source: 'SAP — Supplier Portal',
       ocrConfidence: 94,
     },
     {
@@ -336,7 +336,7 @@ const scenario2: Scenario = {
       fileName: 'BOL_CSLU6182940.pdf',
       status: 'validated',
       receivedAt: '2024-03-17T16:40:00Z',
-      source: 'Carrier EDI',
+      source: 'EDI — Hapag-Lloyd Carrier',
       ocrConfidence: 98,
     },
     {
@@ -345,7 +345,7 @@ const scenario2: Scenario = {
       fileName: 'COO_PO7763.pdf',
       status: 'validated',
       receivedAt: '2024-03-17T11:00:00Z',
-      source: 'Email - export@zhengda-valves.cn',
+      source: 'Email — Forwarder',
       ocrConfidence: 91,
     },
     {
@@ -354,7 +354,7 @@ const scenario2: Scenario = {
       fileName: 'ISF_SHP20482.pdf',
       status: 'validated',
       receivedAt: '2024-03-17T13:30:00Z',
-      source: 'Kuehne+Nagel Portal',
+      source: 'Broker Portal — Kuehne+Nagel',
       ocrConfidence: 99,
     },
   ],
@@ -793,7 +793,7 @@ const scenario3: Scenario = {
       fileName: 'CI_PO9102_20240320.pdf',
       status: 'validated',
       receivedAt: '2024-03-19T07:45:00Z',
-      source: 'Supplier Portal',
+      source: 'SAP — Supplier Portal',
       ocrConfidence: 97,
     },
     {
@@ -802,7 +802,7 @@ const scenario3: Scenario = {
       fileName: 'PL_PO9102_20240320.pdf',
       status: 'validated',
       receivedAt: '2024-03-19T07:45:00Z',
-      source: 'Supplier Portal',
+      source: 'SAP — Supplier Portal',
       ocrConfidence: 95,
     },
     {
@@ -811,7 +811,7 @@ const scenario3: Scenario = {
       fileName: 'BOL_HLXU3019574.pdf',
       status: 'validated',
       receivedAt: '2024-03-19T15:20:00Z',
-      source: 'Carrier EDI',
+      source: 'EDI — Hapag-Lloyd Carrier',
       ocrConfidence: 99,
     },
     {
@@ -820,7 +820,7 @@ const scenario3: Scenario = {
       fileName: 'MSDS_PO9102_scan.pdf',
       status: 'unreadable',
       receivedAt: '2024-03-19T10:10:00Z',
-      source: 'Email - logistics@eurochemsupply.nl',
+      source: 'Email — Forwarder',
       ocrConfidence: 42,
       qualityIssues: [
         'Sections 2-4 heavily blurred - chemical composition unreadable',
@@ -837,7 +837,7 @@ const scenario3: Scenario = {
       fileName: 'DGD_HLXU3019574.pdf',
       status: 'pending',
       receivedAt: '2024-03-19T10:10:00Z',
-      source: 'Email - logistics@eurochemsupply.nl',
+      source: 'Email — Forwarder',
       ocrConfidence: 88,
       dgClassification: 'DG Class 3',
     },
@@ -847,7 +847,7 @@ const scenario3: Scenario = {
       fileName: 'ISF_SHP20483.pdf',
       status: 'validated',
       receivedAt: '2024-03-19T12:00:00Z',
-      source: 'DB Schenker Portal',
+      source: 'Broker Portal — DB Schenker',
       ocrConfidence: 99,
     },
   ],
@@ -1114,7 +1114,7 @@ const scenario4: Scenario = {
       fileName: 'CI_PO8891_20240315.pdf',
       status: 'validated',
       receivedAt: '2024-03-14T08:22:00Z',
-      source: 'Supplier Portal',
+      source: 'SAP — Supplier Portal',
       ocrConfidence: 97,
     },
     {
@@ -1123,7 +1123,7 @@ const scenario4: Scenario = {
       fileName: 'PL_PO8891_20240315.pdf',
       status: 'validated',
       receivedAt: '2024-03-14T08:22:00Z',
-      source: 'Supplier Portal',
+      source: 'SAP — Supplier Portal',
       ocrConfidence: 95,
     },
     {
@@ -1132,7 +1132,7 @@ const scenario4: Scenario = {
       fileName: 'BOL_MSKU7294810_v2.pdf',
       status: 'mismatch',
       receivedAt: '2024-03-14T14:05:00Z',
-      source: 'Carrier EDI',
+      source: 'EDI — Maersk Carrier',
       ocrConfidence: 99,
     },
     {
@@ -1141,7 +1141,7 @@ const scenario4: Scenario = {
       fileName: 'COO_PO8891.pdf',
       status: 'validated',
       receivedAt: '2024-03-14T10:30:00Z',
-      source: 'Email - supplier@lcdglobal.cn',
+      source: 'Email — Forwarder',
       ocrConfidence: 93,
     },
     {

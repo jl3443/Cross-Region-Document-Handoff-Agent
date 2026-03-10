@@ -13,6 +13,8 @@ export const kpiData = {
   shipmentsAtRisk: 3,
   blockedHandoffs: 2,
   completedToday: 7,
+  documentErrorRate: 3.2,
+  slaAdherence: 91.4,
 };
 
 export const kpiTrends: Record<
@@ -28,6 +30,8 @@ export const kpiTrends: Record<
   shipmentsAtRisk: { direction: 'down', value: '-1', positive: true },
   blockedHandoffs: { direction: 'down', value: '-1', positive: true },
   completedToday: { direction: 'up', value: '+2', positive: true },
+  documentErrorRate: { direction: 'down', value: '-0.8%', positive: true },
+  slaAdherence: { direction: 'up', value: '+1.5%', positive: true },
 };
 
 // ---------------------------------------------------------------------------
@@ -35,7 +39,7 @@ export const kpiTrends: Record<
 // ---------------------------------------------------------------------------
 export const aiInsight = {
   title: 'AI Operations Insight',
-  text: '3 shipments require immediate attention: SHP-20484 has 2 blocking exceptions with vessel cutoff in 6 hours. Document match rate improved 1.2% this week driven by automated ISF validation. Recommend prioritizing the MSDS re-submission for SHP-20483 (DG Class 3) — supplier has been reminded once, escalation threshold approaching. Overall portfolio health is trending positive with 87.5% on-time handoff rate.',
+  text: '3 shipments require immediate attention: SHP-20484 has 2 blocking exceptions with vessel cutoff in 6 hours. SAP PO cross-reference detected a $16,450 value discrepancy on SHP-20482 — awaiting compliance override. OTM milestone "Document Handoff Complete" is pending for 2 shipments blocked by missing ISF and MSDS. Document error rate improved to 3.2% driven by automated EDI validation. Overall SLA adherence at 91.4% — above target.',
   timestamp: 'Updated 2 minutes ago',
 };
 
@@ -94,6 +98,7 @@ export const topExceptionTypes = [
   { type: 'Field Mismatch', count: 28 },
   { type: 'Quality Failure', count: 19 },
   { type: 'Cutoff Risk', count: 12 },
+  { type: 'Version Conflict', count: 9 },
   { type: 'Compliance Gap', count: 8 },
 ];
 
