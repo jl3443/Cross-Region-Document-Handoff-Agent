@@ -9,11 +9,8 @@ import {
   Ban,
   CheckCircle2,
   ShieldAlert,
-  ScanLine,
-  Bell,
-  PackageCheck,
-  Flame,
   ClipboardCheck,
+  Download,
 } from 'lucide-react';
 import {
   BarChart,
@@ -56,37 +53,26 @@ const statusColors: Record<string, string> = {
   resolved: 'bg-green-100 text-green-700',
 };
 
-const AI_FEATURES = [
-  { icon: ScanLine,      label: 'Completeness Check',   desc: 'Scans docs against lane & country requirements',       color: 'text-blue-600 bg-blue-50' },
-  { icon: ClipboardCheck,label: 'PO / Shipment Match',  desc: 'Cross-references every field vs SAP PO & OTM',         color: 'text-violet-600 bg-violet-50' },
-  { icon: Bell,          label: 'Auto Reminders',        desc: 'Automated follow-ups for pending / missing docs',      color: 'text-amber-600 bg-amber-50' },
-  { icon: PackageCheck,  label: 'Doc Pack Creation',     desc: 'Assembles validated package meeting all requirements', color: 'text-green-600 bg-green-50' },
-  { icon: Flame,         label: 'Hazmat Handling',       desc: 'Detects DG classification; ensures MSDS & DG forms',  color: 'text-orange-600 bg-orange-50' },
-];
+function exportExceptionsCSV() {
+  const headers = ['ID', 'Document', 'Scenario', 'Shipment', 'Severity', 'Status', 'Age'];
+  const rows = recentExceptions.map((e) => [
+    e.id, e.document, e.scenario, e.shipment, e.severity, e.status, e.age,
+  ]);
+  const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `docflow-exceptions-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export function DashboardView() {
   return (
     <div className="space-y-2">
       {/* AI Insights Hero */}
       <AiInsightsCard />
-
-      {/* AI E2E Feature Strip */}
-      <div className="grid grid-cols-5 gap-2">
-        {AI_FEATURES.map((f) => {
-          const Icon = f.icon;
-          return (
-            <div key={f.label} className="rounded-lg border border-slate-200 bg-white px-3 py-2.5 flex items-start gap-2.5 shadow-sm">
-              <div className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${f.color}`}>
-                <Icon size={14} />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold text-slate-700 leading-tight">{f.label}</p>
-                <p className="mt-0.5 text-[10px] text-slate-400 leading-snug">{f.desc}</p>
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
       {/* KPI Row 1: 6 main metrics */}
       <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-6">
@@ -174,7 +160,16 @@ export function DashboardView() {
 
       {/* Recent Exceptions Table */}
       <Card>
-        <CardHeader><CardTitle>Recent Exceptions</CardTitle></CardHeader>
+        <div className="flex items-center justify-between border-b border-slate-100 px-4 py-2.5">
+          <CardTitle>Recent Exceptions</CardTitle>
+          <button
+            onClick={exportExceptionsCSV}
+            className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-semibold text-slate-600 hover:border-blue-300 hover:text-blue-600 transition-colors shadow-sm"
+          >
+            <Download size={12} />
+            Export CSV
+          </button>
+        </div>
         <CardContent className="px-0 pb-0">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -182,6 +177,7 @@ export function DashboardView() {
                 <tr className="border-b border-slate-100">
                   <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">ID</th>
                   <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Document</th>
+                  <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Use Case Scenario</th>
                   <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Shipment</th>
                   <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Severity</th>
                   <th className="px-4 py-2 text-left text-[11px] font-semibold uppercase tracking-wide text-slate-400">Status</th>
@@ -193,6 +189,7 @@ export function DashboardView() {
                   <tr key={exc.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
                     <td className="px-4 py-2 font-mono text-xs font-medium text-slate-700">{exc.id}</td>
                     <td className="px-4 py-2 font-medium text-slate-800">{exc.document}</td>
+                    <td className="px-4 py-2 text-xs text-slate-500">{exc.scenario}</td>
                     <td className="px-4 py-2 font-mono text-xs text-slate-500">{exc.shipment}</td>
                     <td className="px-4 py-2">
                       <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${severityColors[exc.severity]}`}>{exc.severity}</span>

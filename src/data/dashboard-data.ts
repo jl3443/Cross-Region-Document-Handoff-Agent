@@ -108,16 +108,16 @@ export const topExceptionTypes = [
 export const recentExceptions: Array<{
   id: string;
   document: string;
+  scenario: string;
   shipment: string;
   severity: Severity;
   status: ExceptionStatus;
   age: string;
 }> = [
-  { id: 'EXC-001', document: 'ISF Filing', shipment: 'SHP-20481', severity: 'critical', status: 'open', age: '6h' },
-  { id: 'EXC-004', document: 'Bill of Lading', shipment: 'SHP-20484', severity: 'high', status: 'waiting', age: '12h' },
-  { id: 'EXC-003', document: 'MSDS (DG Class 3)', shipment: 'SHP-20483', severity: 'medium', status: 'waiting', age: '10h' },
-  { id: 'EXC-002', document: 'Commercial Invoice', shipment: 'SHP-20482', severity: 'high', status: 'in-review', age: '8h' },
-  { id: 'EXC-005', document: 'Packing List', shipment: 'SHP-20485', severity: 'low', status: 'open', age: '3h' },
+  { id: 'EXC-001', document: 'Missing ISF Filing',                    scenario: 'Missing ISF',                  shipment: 'SHP-20481', severity: 'critical', status: 'open',      age: '18h' },
+  { id: 'EXC-002', document: 'Commercial Invoice — Value Mismatch',   scenario: 'Invoice Value & Weight Mismatch', shipment: 'SHP-20482', severity: 'high',     status: 'in-review', age: '8h'  },
+  { id: 'EXC-003', document: 'MSDS — Unreadable Scan (DG Class 3)',   scenario: 'Unreadable MSDS – Hazmat Cargo', shipment: 'SHP-20483', severity: 'medium',   status: 'waiting',   age: '10h' },
+  { id: 'EXC-004', document: 'BOL Version Conflict — Cutoff Risk',    scenario: 'Cutoff Risk Escalation',       shipment: 'SHP-20484', severity: 'critical', status: 'escalated', age: '4h'  },
 ];
 
 // ---------------------------------------------------------------------------
