@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   Mail,
@@ -9,10 +10,10 @@ import {
   CheckCircle2,
   ArrowUpRight,
 } from 'lucide-react';
-import type { DocumentException, ResolutionAction, TimelineEvent } from '../../data/types';
-import { cn } from '../../lib/utils';
-import { Badge } from '../ui/Badge';
-import { Card } from '../ui/Card';
+import type { DocumentException, ResolutionAction, TimelineEvent } from '@/data/types';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { SeverityBadge } from './SeverityBadge';
 import { ComparisonView } from './ComparisonView';
 import { QualityFailureView } from './QualityFailureView';
@@ -145,6 +146,8 @@ export function ExceptionDetailPanel({
   onAction,
   onResolve,
 }: ExceptionDetailPanelProps) {
+  const [showResolveConfirm, setShowResolveConfirm] = useState(false);
+
   if (!exception) return null;
 
   return (
@@ -312,28 +315,77 @@ export function ExceptionDetailPanel({
             </div>
 
             {/* ---- G. Footer ---- */}
-            <div className="flex items-center gap-3 border-t border-slate-200 px-5 py-3">
-              <button
-                onClick={onResolve}
-                className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
-              >
-                <CheckCircle2 className="h-4 w-4" />
-                Mark as Resolved
-              </button>
-              <button
-                onClick={() => {
-                  const escalation = exception.resolutionActions.find(
-                    (a) => a.type === 'escalation'
-                  );
-                  if (escalation) {
-                    onAction(escalation.id);
-                  }
-                }}
-                className="flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-                Escalate
-              </button>
+            <div className="relative border-t border-slate-200">
+              {/* AI Resolve Confirmation overlay */}
+              <AnimatePresence>
+                {showResolveConfirm && (
+                  <motion.div
+                    key="resolve-confirm"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 8 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute inset-x-0 bottom-full border-t border-green-200 bg-green-50 px-5 py-4"
+                  >
+                    <div className="mb-3 flex items-start gap-2">
+                      <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
+                      <div>
+                        <p className="text-sm font-semibold text-green-800">
+                          Confirm Resolution
+                        </p>
+                        <p className="mt-0.5 text-xs leading-relaxed text-green-700">
+                          This will mark{' '}
+                          <span className="font-medium">{exception.id}</span> as resolved
+                          and update the status across all systems — exception table,
+                          readiness score, and gate check.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setShowResolveConfirm(false)}
+                        className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowResolveConfirm(false);
+                          onResolve();
+                        }}
+                        className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-1.5 text-xs font-medium text-white transition-colors hover:bg-green-700"
+                      >
+                        <CheckCircle2 className="h-3.5 w-3.5" />
+                        Yes, Resolve
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="flex items-center gap-3 px-5 py-3">
+                <button
+                  onClick={() => setShowResolveConfirm(true)}
+                  className="flex items-center gap-1.5 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700"
+                >
+                  <CheckCircle2 className="h-4 w-4" />
+                  Mark as Resolved
+                </button>
+                <button
+                  onClick={() => {
+                    const escalation = exception.resolutionActions.find(
+                      (a) => a.type === 'escalation'
+                    );
+                    if (escalation) {
+                      onAction(escalation.id);
+                    }
+                  }}
+                  className="flex items-center gap-1.5 rounded-lg border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+                >
+                  <ArrowUpRight className="h-4 w-4" />
+                  Escalate
+                </button>
+              </div>
             </div>
       </motion.aside>
     </>

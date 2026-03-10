@@ -4,6 +4,7 @@ interface RiskBannerProps {
   shipmentId: string;
   blockerCount: number;
   hoursRemaining: number;
+  countdownDisplay?: string;
   issues: string[];
   onEscalate: () => void;
 }
@@ -12,6 +13,7 @@ export function RiskBanner({
   shipmentId,
   blockerCount,
   hoursRemaining,
+  countdownDisplay,
   issues,
   onEscalate,
 }: RiskBannerProps) {
@@ -44,7 +46,9 @@ export function RiskBanner({
           <div className="h-4 w-px bg-red-400/50" />
 
           <span className="text-sm text-red-100">
-            <span className="font-bold text-white">{hoursRemaining}h</span>{' '}
+            <span className="font-bold text-white font-mono">
+              {countdownDisplay ?? `${hoursRemaining}h`}
+            </span>{' '}
             Remaining
           </span>
 

@@ -21,15 +21,16 @@ const dotRingMap: Record<TimelineEvent['type'], string> = {
 };
 
 function formatTimestamp(raw: string): string {
-  // Accepts ISO strings or simple time strings
   try {
     const date = new Date(raw);
     if (!isNaN(date.getTime())) {
-      return date.toLocaleTimeString('en-US', {
+      const datePart = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const timePart = date.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit',
         hour12: true,
       });
+      return `${datePart} · ${timePart}`;
     }
   } catch {
     // fall through
@@ -38,10 +39,13 @@ function formatTimestamp(raw: string): string {
 }
 
 export function ResolutionTimeline({ events }: ResolutionTimelineProps) {
+  // Newest first
+  const orderedEvents = [...events].reverse();
+
   return (
     <div className="space-y-0">
-      {events.map((event, idx) => {
-        const isLast = idx === events.length - 1;
+      {orderedEvents.map((event, idx) => {
+        const isLast = idx === orderedEvents.length - 1;
 
         return (
           <div
@@ -49,8 +53,8 @@ export function ResolutionTimeline({ events }: ResolutionTimelineProps) {
             className="group relative flex gap-4 rounded-md px-2 py-1 transition-colors hover:bg-slate-50"
           >
             {/* Timestamp column */}
-            <div className="w-20 shrink-0 pt-0.5 text-right">
-              <span className="text-xs font-medium text-slate-400">
+            <div className="w-28 shrink-0 pt-0.5 text-right">
+              <span className="text-[10px] font-medium leading-tight text-slate-400 whitespace-nowrap">
                 {formatTimestamp(event.timestamp)}
               </span>
             </div>

@@ -1,5 +1,7 @@
 import { Sparkles, Upload } from 'lucide-react';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 
 interface ScenarioOption {
   id: string;
@@ -16,6 +18,7 @@ interface TopBarProps {
   onAiToggle: () => void;
   aiPanelOpen?: boolean;
   onImportScenario: () => void;
+  showScenarios?: boolean;
 }
 
 const statusConfig: Record<string, { label: string; dotClass: string; textClass: string }> = {
@@ -34,63 +37,73 @@ export function TopBar({
   onAiToggle,
   aiPanelOpen,
   onImportScenario,
+  showScenarios = false,
 }: TopBarProps) {
   const status = statusConfig[shipmentStatus] ?? statusConfig['on-track'];
 
   return (
-    <header className="flex h-14 items-center justify-between border-b border-slate-200 bg-white px-4">
+    <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 shrink-0">
       {/* Left: View Title */}
-      <h1 className="text-lg font-semibold text-slate-900">{title}</h1>
+      <h1 className="text-base font-semibold text-foreground">{title}</h1>
 
-      {/* Center: Scenario Selector Pills */}
-      <div className="flex items-center gap-0.5 rounded-lg bg-slate-100 p-0.5">
-        {scenarios.map((scenario) => {
-          const isActive = scenario.id === activeScenario;
-          return (
-            <button
-              key={scenario.id}
-              onClick={() => onScenarioChange(scenario.id)}
-              className={cn(
-                'rounded-md px-2.5 py-1 text-xs font-medium transition-all',
-                isActive
-                  ? 'bg-white text-slate-900 shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
-              )}
-            >
-              {scenario.name}
-            </button>
-          );
-        })}
-      </div>
+      {/* Center: Scenario Selector Pills — only shown when viewing a specific shipment */}
+      {showScenarios ? (
+        <div className="flex items-center gap-0.5 rounded-lg bg-muted p-0.5">
+          {scenarios.map((scenario) => {
+            const isActive = scenario.id === activeScenario;
+            return (
+              <button
+                key={scenario.id}
+                onClick={() => onScenarioChange(scenario.id)}
+                className={cn(
+                  'rounded-md px-2.5 py-1 text-xs font-medium transition-all',
+                  isActive
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {scenario.name}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div />
+      )}
 
-      {/* Right: AI toggle + Import + Shipment ID + Status */}
+      {/* Right */}
       <div className="flex items-center gap-2">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onAiToggle}
           className={cn(
-            'flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium transition-colors',
+            'gap-1.5 px-2.5 text-xs h-8',
             aiPanelOpen
-              ? 'bg-[#0000B3] text-white'
-              : 'bg-slate-100 text-slate-600 hover:bg-slate-200 hover:text-slate-800'
+              ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+              : 'text-muted-foreground hover:text-foreground hover:bg-accent'
           )}
-          title="AI Assistant"
         >
-          <Sparkles className="h-3.5 w-3.5" />
-          <span>AI</span>
-        </button>
-        <button
+          <Sparkles className="size-3.5" />
+          AI
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onImportScenario}
-          className="flex items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-200 hover:text-slate-800"
-          title="Import Scenario"
+          className="gap-1.5 px-2.5 text-xs h-8 text-muted-foreground hover:text-foreground hover:bg-accent"
         >
-          <Upload className="h-3.5 w-3.5" />
-          <span>Import</span>
-        </button>
-        <code className="rounded bg-slate-100 px-2 py-0.5 font-mono text-xs font-medium text-slate-700">
+          <Upload className="size-3.5" />
+          Import
+        </Button>
+
+        <Separator orientation="vertical" className="h-5" />
+
+        <code className="rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-medium text-foreground">
           {shipmentId}
         </code>
         <div className="flex items-center gap-1.5">
-          <span className={cn('h-2 w-2 rounded-full', status.dotClass)} />
+          <span className={cn('h-1.5 w-1.5 rounded-full', status.dotClass)} />
           <span className={cn('text-xs font-medium', status.textClass)}>
             {status.label}
           </span>

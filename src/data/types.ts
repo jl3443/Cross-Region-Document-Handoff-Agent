@@ -1,8 +1,10 @@
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
+export type UserRole = 'export-coordinator' | 'import-team' | 'broker' | 'trade-compliance';
 export type ExceptionStatus = 'open' | 'waiting' | 'escalated' | 'in-review' | 'resolved';
 export type DocStatus = 'validated' | 'mismatch' | 'unreadable' | 'pending' | 'missing';
 export type TransportMode = 'ocean' | 'air' | 'road';
 export type ExceptionType = 'missing-doc' | 'mismatch' | 'quality' | 'cutoff-risk';
+export type ViewId = 'dashboard' | 'analytics' | 'overview' | 'exceptions' | 'documents' | 'communications' | 'timeline' | 'email';
 
 export interface Shipment {
   id: string;
@@ -99,6 +101,33 @@ export interface DocumentException {
 export interface LaneRequirement {
   label: string;
   regulations: string[];
+}
+
+export type ResolveDocType = 'isf' | 'invoice' | 'msds' | 'general';
+
+export interface EmailAttachment {
+  name: string;
+  sizeKb: number;
+  docType: ResolveDocType;
+}
+
+export interface InboxEmail {
+  id: string;
+  from: string;
+  fromName: string;
+  subject: string;
+  body: string;
+  timestamp: string;
+  isReply?: boolean;
+  read: boolean;
+  attachment?: EmailAttachment;
+  resolveDocType?: ResolveDocType;
+}
+
+export interface SentEmail {
+  id: string;
+  timestamp: string;
+  draft: EmailDraft;
 }
 
 export interface Scenario {
