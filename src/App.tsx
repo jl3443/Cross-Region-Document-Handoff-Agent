@@ -10,6 +10,9 @@ import {
   X,
   ArrowRight,
   ChevronLeft,
+  Ship,
+  Plane,
+  Truck,
 } from 'lucide-react';
 import { scenarios as builtInScenarios } from '@/data/scenarios';
 import { recentExceptions } from '@/data/dashboard-data';
@@ -53,6 +56,13 @@ import { AiChatPanel } from '@/components/ai/AiChatPanel';
 import { ScenarioUploadModal } from '@/components/ui/ScenarioUploadModal';
 import { DocumentUploadZone } from '@/components/ui/DocumentUploadZone';
 import { ReadyAnimation } from '@/components/ui/ReadyAnimation';
+
+// ── Transport mode helper (Task 2) ─────────────────────────────────────────
+function getTransportModeCfg(mode?: string) {
+  if (mode === 'air') return { Icon: Plane, label: 'Air Freight', color: 'text-sky-600', bg: 'bg-sky-50', border: 'border-sky-200' };
+  if (mode === 'road') return { Icon: Truck, label: 'Road', color: 'text-slate-600', bg: 'bg-slate-100', border: 'border-slate-200' };
+  return { Icon: Ship, label: 'Ocean Freight', color: 'text-cyan-700', bg: 'bg-cyan-50', border: 'border-cyan-200' };
+}
 
 const viewTitles: Record<ViewId, string> = {
   dashboard: 'Dashboard',
@@ -106,6 +116,9 @@ export default function App() {
   const [showReadyAnim, setShowReadyAnim] = useState(false);
   const readyAnimShownRef = useRef(false);
   const countdownIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Task 3: Track which exception actions have been executed (email sent)
+  const [executedActionIds, setExecutedActionIds] = useState<Set<string>>(new Set());
+  const lastTriggeredActionIdRef = useRef<string | null>(null);
 
   const allScenarios = useMemo(() => [...builtInScenarios, ...customScenarios], [customScenarios]);
 
@@ -247,6 +260,8 @@ export default function App() {
     setActiveScenarioId(id);
     setSelectedExceptionId(null);
     setResolvedExceptions(new Set());
+    setExecutedActionIds(new Set());
+    lastTriggeredActionIdRef.current = null;
     setShowShipmentList(false);
   }, []);
 
@@ -281,12 +296,15 @@ export default function App() {
     setResolvedDocTypes(new Set());
     setShowReadyAnim(false);
     readyAnimShownRef.current = false;
+    setExecutedActionIds(new Set());
+    lastTriggeredActionIdRef.current = null;
   }, []);
 
   const handleActionForException = useCallback((exc: DocumentException, actionId: string) => {
     const action = exc.resolutionActions.find((a) => a.id === actionId);
     if (!action) return;
     if (action.type === 'email' || action.type === 'internal') {
+      lastTriggeredActionIdRef.current = actionId;
       setActiveDrafts(exc.emailDrafts);
       setShowDraftPanel(true);
     } else if (action.type === 'escalation') {
@@ -359,6 +377,17 @@ export default function App() {
   }, [selectedExceptionId]);
 
   const handleSendDraft = useCallback((tab: string, editedSubject?: string, editedBody?: string) => {
+    // Task 3: mark the action that triggered this draft panel as executed.
+    // IMPORTANT: capture the ref value into a local variable BEFORE calling setExecutedActionIds.
+    // React may run the state updater function asynchronously (after the cascade finishes and the
+    // ref has been cleared to null), so reading lastTriggeredActionIdRef.current *inside* the
+    // updater would yield null. Capturing it now ensures the correct action ID is stored.
+    if (lastTriggeredActionIdRef.current) {
+      const idToMark = lastTriggeredActionIdRef.current;
+      lastTriggeredActionIdRef.current = null;
+      setExecutedActionIds((prev) => new Set([...prev, idToMark]));
+    }
+
     const draft = activeDrafts.find((d) => d.tab === tab);
     if (draft) {
       const finalDraft = {
@@ -371,7 +400,7 @@ export default function App() {
         ...prev,
         { id: sentId, timestamp: new Date().toISOString(), draft: finalDraft },
       ]);
-      // Simulate reply after 2 seconds
+      // Simulate reply after 2 seconds — status only resolves when this fires
       setTimeout(() => {
         const reply = generateReply(finalDraft);
         setInboxEmails((prev) => [reply, ...prev]);
@@ -399,9 +428,22 @@ export default function App() {
         }
       }, 2000);
     }
-    setShowDraftPanel(false);
+    // Task 4: Do NOT auto-close the draft panel — it stays open to show the follow-up tracker
+    // Panel is closed by user via X button (onClose → setShowDraftPanel(false))
     toast.success(`Email sent to ${tab}`);
   }, [activeDrafts, scenario]);
+
+  // Task 3: Send All — defined AFTER handleSendDraft to avoid TDZ error
+  const handleExecuteAll = useCallback(() => {
+    if (!selectedExc) return;
+    const allIds = selectedExc.resolutionActions.map((a) => a.id);
+    setExecutedActionIds((prev) => new Set([...prev, ...allIds]));
+    // Send all email drafts through the same pipeline (triggers 2s reply → docType resolve → readiness update)
+    selectedExc.emailDrafts.forEach((draft) => {
+      handleSendDraft(draft.tab, draft.subject, draft.body);
+    });
+    toast.success('All actions dispatched — awaiting document confirmation.');
+  }, [selectedExc, handleSendDraft]);
 
   const handleEscalate = useCallback(() => {
     setEscalationActions((prev) => prev.map((a) => ({ ...a, status: 'sent' as const })));
@@ -749,6 +791,17 @@ export default function App() {
                         </div>
                         <Separator orientation="vertical" className="h-6" />
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {/* Transport mode badge — Task 2 */}
+                          {(() => {
+                            const modeCfg = getTransportModeCfg(scenario.shipment.mode);
+                            const ModeIcon = modeCfg.Icon;
+                            return (
+                              <span className={cn('inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[10px] font-semibold shrink-0', modeCfg.bg, modeCfg.border, modeCfg.color)}>
+                                <ModeIcon className="h-3 w-3" />
+                                {modeCfg.label}
+                              </span>
+                            );
+                          })()}
                           <span className="font-medium text-foreground">{scenario.shipment.origin.port}</span>
                           <ArrowRight className="h-3 w-3 text-muted-foreground/50" />
                           <span className="font-medium text-foreground">{scenario.shipment.destination.port}</span>
@@ -1063,6 +1116,8 @@ export default function App() {
             onClose={() => setSelectedExceptionId(null)}
             onAction={handleAction}
             onResolve={handleResolve}
+            executedActionIds={executedActionIds}
+            onExecuteAll={handleExecuteAll}
           />
         )}
       </AnimatePresence>

@@ -9,6 +9,9 @@ import {
   Sparkles,
   CheckCircle2,
   ArrowUpRight,
+  MailCheck,
+  Loader2,
+  Send,
 } from 'lucide-react';
 import type { DocumentException, ResolutionAction, TimelineEvent } from '@/data/types';
 import { cn } from '@/lib/utils';
@@ -23,6 +26,8 @@ interface ExceptionDetailPanelProps {
   onClose: () => void;
   onAction: (actionId: string) => void;
   onResolve: () => void;
+  executedActionIds?: Set<string>;
+  onExecuteAll?: () => void;
 }
 
 /* ------------------------------------------------------------------ */
@@ -131,7 +136,7 @@ function MiniTimeline({ events }: { events: TimelineEvent[] }) {
 /* ------------------------------------------------------------------ */
 function SectionHeading({ children }: { children: React.ReactNode }) {
   return (
-    <h4 className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">
+    <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
       {children}
     </h4>
   );
@@ -145,10 +150,26 @@ export function ExceptionDetailPanel({
   onClose,
   onAction,
   onResolve,
+  executedActionIds,
+  onExecuteAll,
 }: ExceptionDetailPanelProps) {
   const [showResolveConfirm, setShowResolveConfirm] = useState(false);
+  const [sendingAll, setSendingAll] = useState(false);
 
   if (!exception) return null;
+
+  const unexecutedActions = exception.resolutionActions.filter(
+    (a) => !executedActionIds?.has(a.id)
+  );
+  const allExecuted = exception.resolutionActions.length > 0 && unexecutedActions.length === 0;
+
+  const handleSendAll = () => {
+    setSendingAll(true);
+    setTimeout(() => {
+      setSendingAll(false);
+      onExecuteAll?.();
+    }, 1500);
+  };
 
   return (
     <>
@@ -193,7 +214,7 @@ export function ExceptionDetailPanel({
               {/* ---- B. What Happened ---- */}
               <section>
                 <SectionHeading>What Happened</SectionHeading>
-                <p className="text-sm leading-relaxed text-slate-700">
+                <p className="text-sm leading-relaxed text-slate-700 mt-3">
                   {exception.summary}
                 </p>
                 {exception.impact && (
@@ -210,7 +231,7 @@ export function ExceptionDetailPanel({
               {/* ---- C. Why It Matters (AI Assessment) ---- */}
               <section>
                 <SectionHeading>Why It Matters</SectionHeading>
-                <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4">
+                <div className="rounded-lg border border-indigo-100 bg-indigo-50/50 p-4 mt-3">
                   <div className="mb-2 flex items-center gap-1.5">
                     <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
                     <span className="text-[11px] font-semibold uppercase tracking-wide text-indigo-500">
@@ -229,11 +250,13 @@ export function ExceptionDetailPanel({
                   <SectionHeading>Evidence</SectionHeading>
 
                   {exception.comparisonFields && (
-                    <ComparisonView fields={exception.comparisonFields} />
+                    <div className="mt-3">
+                      <ComparisonView fields={exception.comparisonFields} />
+                    </div>
                   )}
 
                   {exception.qualityIssues && (
-                    <div className={exception.comparisonFields ? 'mt-4' : ''}>
+                    <div className={exception.comparisonFields ? 'mt-4' : 'mt-3'}>
                       <QualityFailureView
                         ocrConfidence={exception.ocrConfidence}
                         issues={exception.qualityIssues}
@@ -246,19 +269,52 @@ export function ExceptionDetailPanel({
               {/* ---- E. Recommended Actions ---- */}
               {exception.resolutionActions.length > 0 && (
                 <section>
-                  <SectionHeading>Recommended Actions</SectionHeading>
+                  {/* Section header with Send All button */}
+                  <div className="flex items-center justify-between mb-3">
+                    <SectionHeading>Recommended Actions</SectionHeading>
+                    {onExecuteAll && !allExecuted && (
+                      <button
+                        onClick={handleSendAll}
+                        disabled={sendingAll}
+                        className={cn(
+                          'inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors',
+                          'bg-slate-800 text-white hover:bg-slate-900 disabled:opacity-60 disabled:cursor-not-allowed'
+                        )}
+                      >
+                        {sendingAll ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                            Dispatching…
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-3 w-3" />
+                            Send All
+                          </>
+                        )}
+                      </button>
+                    )}
+                    {allExecuted && (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-green-700">
+                        <MailCheck className="h-3.5 w-3.5" />
+                        All dispatched
+                      </span>
+                    )}
+                  </div>
+
                   <div className="space-y-3">
                     {exception.resolutionActions.map((action) => {
                       const cfg = actionConfig[action.type];
                       const Icon = cfg.icon;
+                      const isExecuted = executedActionIds?.has(action.id) ?? false;
 
                       return (
                         <div
                           key={action.id}
                           className={cn(
-                            'rounded-lg border p-4',
+                            'rounded-lg border p-4 transition-all duration-200',
                             cfg.border,
-                            cfg.bg
+                            isExecuted ? 'bg-green-50/60 border-green-200' : cfg.bg
                           )}
                         >
                           <div className="flex items-start justify-between gap-3">
@@ -266,13 +322,17 @@ export function ExceptionDetailPanel({
                               <div
                                 className={cn(
                                   'mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md',
-                                  cfg.bg
+                                  isExecuted ? 'bg-green-100' : cfg.bg
                                 )}
                               >
-                                <Icon className={cn('h-4 w-4', cfg.accent)} />
+                                {isExecuted ? (
+                                  <MailCheck className="h-4 w-4 text-green-600" />
+                                ) : (
+                                  <Icon className={cn('h-4 w-4', cfg.accent)} />
+                                )}
                               </div>
                               <div className="min-w-0">
-                                <p className="text-sm font-medium text-slate-800">
+                                <p className={cn('text-sm font-medium', isExecuted ? 'text-green-800' : 'text-slate-800')}>
                                   {action.label}
                                 </p>
                                 <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
@@ -283,21 +343,47 @@ export function ExceptionDetailPanel({
                                 </p>
                               </div>
                             </div>
-                            <button
-                              onClick={() => onAction(action.id)}
-                              className={cn(
-                                'shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
-                                cfg.btnBg,
-                                cfg.btnText
-                              )}
-                            >
-                              Execute
-                            </button>
+
+                            {/* Execute / Sent indicator */}
+                            {isExecuted ? (
+                              <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-green-200 bg-green-50 px-2.5 py-1.5 text-xs font-medium text-green-700">
+                                <MailCheck className="h-3.5 w-3.5" />
+                                Sent
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => onAction(action.id)}
+                                className={cn(
+                                  'shrink-0 rounded-md px-3 py-1.5 text-xs font-medium transition-colors',
+                                  cfg.btnBg,
+                                  cfg.btnText
+                                )}
+                              >
+                                Execute
+                              </button>
+                            )}
                           </div>
                         </div>
                       );
                     })}
                   </div>
+
+                  {/* All-dispatched summary */}
+                  {allExecuted && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="mt-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 flex items-center gap-2.5"
+                    >
+                      <CheckCircle2 className="h-4 w-4 text-green-600 shrink-0" />
+                      <div>
+                        <p className="text-xs font-semibold text-green-800">All actions dispatched</p>
+                        <p className="text-[11px] text-green-700 mt-0.5">
+                          Awaiting document confirmation — status will update when system receipt is confirmed.
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
                 </section>
               )}
 
@@ -305,7 +391,7 @@ export function ExceptionDetailPanel({
               {exception.timeline.length > 0 && (
                 <section>
                   <SectionHeading>Resolution History</SectionHeading>
-                  <Card className="p-0">
+                  <Card className="p-0 mt-3">
                     <div className="py-2">
                       <MiniTimeline events={exception.timeline} />
                     </div>

@@ -1,4 +1,4 @@
-import { ArrowRight, Ship, AlertTriangle, FileText, Clock, ChevronRight } from 'lucide-react';
+import { ArrowRight, Ship, Plane, Truck, AlertTriangle, FileText, Clock, ChevronRight } from 'lucide-react';
 import type { Scenario } from '@/data/types';
 import { cn, formatCountdown, getCutoffColor } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -33,11 +33,19 @@ function getReadinessConfig(score: number) {
   return { bar: 'bg-red-500', text: 'text-red-600' };
 }
 
+// ── Transport mode helper ──────────────────────────────────────────────
+function getTransportModeCfg(mode?: string) {
+  if (mode === 'air') return { Icon: Plane, label: 'Air Freight', color: 'text-sky-600', bg: 'bg-sky-50 border-sky-200' };
+  if (mode === 'road') return { Icon: Truck, label: 'Road', color: 'text-slate-600', bg: 'bg-slate-100 border-slate-200' };
+  return { Icon: Ship, label: 'Ocean Freight', color: 'text-cyan-700', bg: 'bg-cyan-50 border-cyan-200' };
+}
+
 // ── Decorative (non-interactive) row data ──────────────────────────────────
 interface DecorativeRow {
   id: string;
   name: string;
   status: 'on-track' | 'at-risk' | 'blocked' | 'pending';
+  mode?: 'ocean' | 'air' | 'road';
   origin: { city: string; port: string };
   destination: { city: string; port: string };
   carrier: string;
@@ -56,120 +64,127 @@ const DECORATIVE_ROWS: DecorativeRow[] = [
   {
     id: 'SHP-20488',
     name: 'Docs Awaiting Review',
-    status: 'pending',
+    status: 'on-track',
+    mode: 'ocean',
     origin: { city: 'Melbourne', port: 'AUMEL' },
     destination: { city: 'Los Angeles', port: 'USLAX' },
     carrier: 'COSCO',
     vessel: 'COSCO Galaxy',
     voyage: 'V.112W',
     cargoDescription: 'Industrial Machinery Parts',
-    readiness: 58,
-    exceptions: 2,
+    readiness: 100,
+    exceptions: 0,
     criticalExceptions: 0,
     totalDocs: 8,
-    receivedDocs: 5,
+    receivedDocs: 8,
     cutoffHours: 28,
   },
   {
     id: 'SHP-20486',
     name: 'ISF Filing Pending',
-    status: 'pending',
+    status: 'on-track',
+    mode: 'ocean',
     origin: { city: 'Shanghai', port: 'CNSHA' },
     destination: { city: 'Seattle', port: 'USSEA' },
     carrier: 'Evergreen',
     vessel: 'Ever Ace',
     voyage: 'V.031E',
     cargoDescription: 'Consumer Electronics',
-    readiness: 62,
-    exceptions: 1,
+    readiness: 100,
+    exceptions: 0,
     criticalExceptions: 0,
     totalDocs: 6,
-    receivedDocs: 4,
+    receivedDocs: 6,
     cutoffHours: 36,
   },
   {
     id: 'SHP-20480',
     name: 'Pending Review',
-    status: 'pending',
+    status: 'on-track',
+    mode: 'ocean',
     origin: { city: 'Singapore', port: 'SGSIN' },
     destination: { city: 'Houston', port: 'USHOU' },
     carrier: 'MSC',
     vessel: 'MSC Ambra',
     voyage: 'V.218N',
     cargoDescription: 'Pharmaceutical Ingredients',
-    readiness: 71,
-    exceptions: 1,
+    readiness: 100,
+    exceptions: 0,
     criticalExceptions: 0,
     totalDocs: 7,
-    receivedDocs: 5,
+    receivedDocs: 7,
     cutoffHours: 42,
   },
   {
     id: 'SHP-20479',
     name: 'Docs Pending',
-    status: 'pending',
+    status: 'on-track',
+    mode: 'air',
     origin: { city: 'Shenzhen', port: 'CNSZX' },
     destination: { city: 'Long Beach', port: 'USLGB' },
     carrier: 'Yang Ming',
     vessel: 'YM Wish',
     voyage: 'V.097W',
     cargoDescription: 'Auto Parts & Accessories',
-    readiness: 65,
-    exceptions: 1,
+    readiness: 100,
+    exceptions: 0,
     criticalExceptions: 0,
     totalDocs: 5,
-    receivedDocs: 3,
+    receivedDocs: 5,
     cutoffHours: 48,
   },
   {
     id: 'SHP-20477',
     name: 'Pending Customs Clearance',
-    status: 'pending',
+    status: 'on-track',
+    mode: 'ocean',
     origin: { city: 'Osaka', port: 'JPOSA' },
     destination: { city: 'Los Angeles', port: 'USLAX' },
     carrier: 'ONE',
     vessel: 'ONE Continuity',
     voyage: 'V.044E',
     cargoDescription: 'Precision Instruments',
-    readiness: 74,
+    readiness: 100,
     exceptions: 0,
     criticalExceptions: 0,
     totalDocs: 6,
-    receivedDocs: 5,
+    receivedDocs: 6,
     cutoffHours: 56,
   },
   {
-    id: 'SHP-20484',
+    id: 'SHP-20485',
     name: 'Docs Under Review',
-    status: 'pending',
+    status: 'on-track',
+    mode: 'road',
     origin: { city: 'Rotterdam', port: 'NLRTM' },
     destination: { city: 'Boston', port: 'USBOS' },
     carrier: 'Hapag-Lloyd',
     vessel: 'HL Colombo',
     voyage: 'V.019W',
     cargoDescription: 'Chemical Products (Non-DG)',
-    readiness: 68,
+    readiness: 100,
     exceptions: 0,
     criticalExceptions: 0,
     totalDocs: 7,
-    receivedDocs: 5,
+    receivedDocs: 7,
     cutoffHours: 60,
   },
   {
     id: 'SHP-20475',
     name: 'Pending Validation',
-    status: 'pending',
+    status: 'on-track',
+    mode: 'ocean',
     origin: { city: 'Hamburg', port: 'DEHAM' },
     destination: { city: 'New York', port: 'USNYC' },
     carrier: 'Maersk',
     vessel: 'Maersk Taurus',
     voyage: 'V.116W',
     cargoDescription: 'Machinery & Equipment',
-    readiness: 72,
+    readiness: 100,
     exceptions: 0,
     criticalExceptions: 0,
     totalDocs: 5,
-    receivedDocs: 4,
+    receivedDocs: 5,
     cutoffHours: 72,
   },
 ];
@@ -191,6 +206,8 @@ interface ScenarioCardProps {
 
 function ScenarioCard({ scenario, resolvedExceptions, onClick }: ScenarioCardProps) {
   const statusCfg = getStatusConfig(scenario.shipment.status, scenario.warRoom);
+  const modeCfg = getTransportModeCfg(scenario.shipment.mode);
+  const ModeIcon = modeCfg.Icon;
 
   const openExceptions = scenario.exceptions.filter(
     (e) => !resolvedExceptions.has(e.id)
@@ -223,10 +240,12 @@ function ScenarioCard({ scenario, resolvedExceptions, onClick }: ScenarioCardPro
     <button
       onClick={onClick}
       className={cn(
-        'group relative w-full rounded-xl border bg-card text-left shadow-sm',
-        'transition-all duration-150 hover:shadow-md hover:border-primary/30',
+        'group relative w-full rounded-xl border text-left shadow-sm',
+        'transition-all duration-150 hover:shadow-md hover:border-amber-300/50',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
-        scenario.warRoom && 'ring-1 ring-red-400/40'
+        // Yellow/amber highlight for demo scenarios
+        'bg-amber-50/40 ring-1 ring-amber-300/50',
+        scenario.warRoom && 'ring-red-400/60 bg-red-50/30'
       )}
     >
       <div className={cn('absolute inset-y-0 left-0 w-1 rounded-l-xl', statusCfg.stripe)} />
@@ -241,6 +260,11 @@ function ScenarioCard({ scenario, resolvedExceptions, onClick }: ScenarioCardPro
             {scenario.warRoom && (
               <span className="rounded-full bg-red-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-red-700 uppercase">
                 WAR ROOM
+              </span>
+            )}
+            {!scenario.warRoom && (
+              <span className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold tracking-wide text-amber-700 uppercase">
+                Demo
               </span>
             )}
           </div>
@@ -264,9 +288,12 @@ function ScenarioCard({ scenario, resolvedExceptions, onClick }: ScenarioCardPro
             <span className="font-mono text-xs text-muted-foreground">{scenario.shipment.destination.port}</span>
             <span className="text-muted-foreground text-xs">{scenario.shipment.destination.city}</span>
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground truncate">
-            <Ship className="inline h-3 w-3 mr-1" />
-            {scenario.shipment.carrier} · {scenario.shipment.vessel} · {scenario.shipment.voyage}
+          <p className="mt-0.5 text-xs text-muted-foreground truncate flex items-center gap-1">
+            <span className={cn('inline-flex items-center gap-0.5 rounded border px-1 py-0.5 text-[9px] font-semibold shrink-0', modeCfg.bg, modeCfg.color)}>
+              <ModeIcon className="h-2.5 w-2.5" />
+              {modeCfg.label}
+            </span>
+            <span className="truncate">{scenario.shipment.carrier} · {scenario.shipment.vessel} · {scenario.shipment.voyage}</span>
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground/70 truncate">
             {scenario.shipment.cargoDescription}
@@ -347,8 +374,8 @@ function ScenarioCard({ scenario, resolvedExceptions, onClick }: ScenarioCardPro
 
         {/* Arrow */}
         <div className="ml-3 flex-shrink-0">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted group-hover:bg-primary/10 transition-colors">
-            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-100/60 group-hover:bg-primary/10 transition-colors">
+            <ChevronRight className="h-4 w-4 text-amber-600 group-hover:text-primary transition-colors" />
           </div>
         </div>
       </div>
@@ -361,11 +388,13 @@ function DecorativeCard({ row }: { row: DecorativeRow }) {
   const statusCfg = getStatusConfig(row.status);
   const readinessCfg = getReadinessConfig(row.readiness);
   const cutoffColor = getCutoffColor(row.cutoffHours);
+  const modeCfg = getTransportModeCfg(row.mode ?? 'ocean');
+  const ModeIcon = modeCfg.Icon;
 
   return (
     <div
       className={cn(
-        'relative w-full rounded-xl border bg-card shadow-sm opacity-70 pointer-events-none select-none',
+        'relative w-full rounded-xl border bg-card shadow-sm opacity-60 pointer-events-none select-none',
         row.status === 'blocked' && 'ring-1 ring-red-300/30'
       )}
     >
@@ -397,9 +426,12 @@ function DecorativeCard({ row }: { row: DecorativeRow }) {
             <span className="font-mono text-xs text-muted-foreground">{row.destination.port}</span>
             <span className="text-muted-foreground text-xs">{row.destination.city}</span>
           </div>
-          <p className="mt-0.5 text-xs text-muted-foreground truncate">
-            <Ship className="inline h-3 w-3 mr-1" />
-            {row.carrier} · {row.vessel} · {row.voyage}
+          <p className="mt-0.5 text-xs text-muted-foreground truncate flex items-center gap-1">
+            <span className={cn('inline-flex items-center gap-0.5 rounded border px-1 py-0.5 text-[9px] font-semibold shrink-0', modeCfg.bg, modeCfg.color)}>
+              <ModeIcon className="h-2.5 w-2.5" />
+              {modeCfg.label}
+            </span>
+            <span className="truncate">{row.carrier} · {row.vessel} · {row.voyage}</span>
           </p>
           <p className="mt-0.5 text-[11px] text-muted-foreground/70 truncate">{row.cargoDescription}</p>
         </div>
@@ -408,26 +440,11 @@ function DecorativeCard({ row }: { row: DecorativeRow }) {
 
         {/* Exceptions */}
         <div className="text-center min-w-[64px] flex-shrink-0">
-          {row.exceptions > 0 ? (
-            <>
-              <div className={cn('text-xl font-bold tabular-nums', row.criticalExceptions > 0 ? 'text-red-600' : 'text-amber-600')}>
-                {row.exceptions}
-              </div>
-              <div className="text-[10px] text-muted-foreground leading-tight">{row.exceptions === 1 ? 'Exception' : 'Exceptions'}</div>
-              {row.criticalExceptions > 0 && (
-                <div className="mt-0.5 flex items-center justify-center gap-1 text-[9px] font-semibold text-red-600">
-                  <AlertTriangle className="h-2.5 w-2.5" />
-                  {row.criticalExceptions} Critical
-                </div>
-              )}
-            </>
-          ) : (
-            <>
-              <div className="text-xl font-bold text-green-600 tabular-nums">0</div>
-              <div className="text-[10px] text-muted-foreground leading-tight">Exceptions</div>
-              <div className="mt-0.5 text-[9px] font-semibold text-green-600">Clean</div>
-            </>
-          )}
+          <>
+            <div className="text-xl font-bold text-green-600 tabular-nums">0</div>
+            <div className="text-[10px] text-muted-foreground leading-tight">Exceptions</div>
+            <div className="mt-0.5 text-[9px] font-semibold text-green-600">Clean</div>
+          </>
         </div>
 
         <Separator orientation="vertical" className="h-10 mx-3" />
@@ -497,65 +514,25 @@ export function ShipmentListView({
     (s) => s.shipment.status === 'blocked' || s.warRoom
   ).length;
 
-  // Sort real scenarios by priority
+  // Sort real (demo) scenarios by priority — always displayed first
   const sortedScenarios = [...scenarios].sort((a, b) => {
     return getPriority(a.shipment.status, a.warRoom) - getPriority(b.shipment.status, b.warRoom);
   });
 
-  // Sort decorative rows by priority too
+  // Sort decorative rows — always displayed last (all on-track, so priority 4)
   const sortedDecorativeRows = [...DECORATIVE_ROWS].sort(
     (a, b) => getPriority(a.status) - getPriority(b.status)
   );
 
-  // Interleave: real scenarios first by priority, then decorative rows fill in
-  // Merge by priority level for a natural-looking list
   type MergedItem =
     | { kind: 'real'; scenario: Scenario }
     | { kind: 'deco'; row: DecorativeRow };
 
-  const realItems: MergedItem[] = sortedScenarios.map((s) => ({ kind: 'real', scenario: s }));
-  const decoItems: MergedItem[] = sortedDecorativeRows.map((r) => ({ kind: 'deco', row: r }));
-
-  // Interleave: insert decorative rows after same-priority real rows
-  const allItems: MergedItem[] = [];
-  let decoIdx = 0;
-  for (const item of realItems) {
-    allItems.push(item);
-  }
-  // Insert decorative rows at appropriate positions
-  for (const decoItem of decoItems) {
-    const decoRow = decoItem as { kind: 'deco'; row: DecorativeRow };
-    const decoPri = getPriority(decoRow.row.status);
-    // Find insertion point: after all real items with same or lower priority number
-    let insertAt = allItems.length;
-    for (let i = 0; i < allItems.length; i++) {
-      const it = allItems[i];
-      const realPri = it.kind === 'real' ? getPriority(it.scenario.shipment.status, it.scenario.warRoom) : getPriority((it as { kind: 'deco'; row: DecorativeRow }).row.status);
-      if (realPri > decoPri) {
-        insertAt = i;
-        break;
-      }
-    }
-    allItems.splice(insertAt + decoIdx, 0, decoItem);
-    decoIdx++;
-  }
-  // Reset decoIdx and redo cleanly — just append decorative in sorted order after real
-  // Actually let's do a simpler merge: sort all together
-  const allItemsSimple: MergedItem[] = [
-    ...realItems,
-    ...decoItems,
-  ].sort((a, b) => {
-    const getPri = (item: MergedItem) => {
-      if (item.kind === 'real') return getPriority(item.scenario.shipment.status, item.scenario.warRoom);
-      return getPriority(item.row.status);
-    };
-    const diff = getPri(a) - getPri(b);
-    if (diff !== 0) return diff;
-    // Real items before decorative at same priority
-    if (a.kind === 'real' && b.kind === 'deco') return -1;
-    if (a.kind === 'deco' && b.kind === 'real') return 1;
-    return 0;
-  });
+  // Demo scenarios first, then decorative rows — clean and simple
+  const allItems: MergedItem[] = [
+    ...sortedScenarios.map((s): MergedItem => ({ kind: 'real', scenario: s })),
+    ...sortedDecorativeRows.map((r): MergedItem => ({ kind: 'deco', row: r })),
+  ];
 
   const totalDisplay = scenarios.length + DECORATIVE_ROWS.length;
 
@@ -584,20 +561,43 @@ export function ShipmentListView({
         </div>
       </div>
 
-      {/* Cards — real + decorative, sorted by priority */}
+      {/* Section label for demo scenarios */}
+      <div className="flex items-center gap-2 px-1">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-amber-700/80">
+          Active Demo Scenarios
+        </span>
+        <div className="flex-1 h-px bg-amber-200/60" />
+        <span className="text-[10px] text-muted-foreground">{scenarios.length} shipments</span>
+      </div>
+
+      {/* Cards — demo scenarios first, decorative rows after */}
       <div className="space-y-2">
-        {allItemsSimple.map((item) =>
-          item.kind === 'real' ? (
-            <ScenarioCard
-              key={item.scenario.id}
-              scenario={item.scenario}
-              resolvedExceptions={resolvedExceptions}
-              onClick={() => onSelect(item.scenario.id)}
-            />
-          ) : (
-            <DecorativeCard key={item.row.id} row={item.row} />
-          )
-        )}
+        {allItems.map((item, idx) => {
+          // Insert section divider between demo and decorative rows
+          const isDivider = item.kind === 'deco' && (idx === 0 || allItems[idx - 1].kind === 'real');
+          return (
+            <div key={item.kind === 'real' ? item.scenario.id : item.row.id}>
+              {isDivider && (
+                <div className="flex items-center gap-2 px-1 pt-2 pb-1">
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground/60">
+                    Other Shipments
+                  </span>
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-[10px] text-muted-foreground">{DECORATIVE_ROWS.length} shipments · All clear</span>
+                </div>
+              )}
+              {item.kind === 'real' ? (
+                <ScenarioCard
+                  scenario={item.scenario}
+                  resolvedExceptions={resolvedExceptions}
+                  onClick={() => onSelect(item.scenario.id)}
+                />
+              ) : (
+                <DecorativeCard row={item.row} />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
