@@ -39,7 +39,6 @@ interface SidebarProps {
 }
 
 function NavButton({
-  id,
   label,
   icon: Icon,
   isActive,
@@ -81,7 +80,6 @@ function NavButton({
 }
 
 function SubNavButton({
-  id,
   label,
   icon: Icon,
   isActive,
@@ -276,7 +274,7 @@ export function Sidebar({
               )}
             />
             <span className="flex-1 text-left truncate">Email</span>
-            {inboxHasReply > 0 && activeView !== 'email' && (
+            {(inboxHasReply ?? 0) > 0 && activeView !== 'email' && (
               <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-destructive px-1.5 text-[10px] font-bold text-white">
                 {inboxHasReply}
               </span>
@@ -312,7 +310,7 @@ export function Sidebar({
                 label="Inbox"
                 icon={Inbox}
                 isActive={activeView === 'email' && emailSubView === 'inbox'}
-                badge={inboxHasReply > 0 ? inboxHasReply : undefined}
+                badge={(inboxHasReply ?? 0) > 0 ? inboxHasReply : undefined}
                 onClick={() => {
                   onViewChange('email');
                   onEmailSubViewChange?.('inbox');

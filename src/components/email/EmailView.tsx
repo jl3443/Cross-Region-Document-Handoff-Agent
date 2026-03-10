@@ -318,6 +318,7 @@ function AiAgentCard({
     isf: 'Importer Security Filing (ISF-10)',
     invoice: 'Commercial Invoice (Rev. 2)',
     msds: 'Material Safety Data Sheet (MSDS)',
+    bol: 'Bill of Lading (BOL)',
     general: 'Shipment Document Package',
   };
 

@@ -1,7 +1,7 @@
 import { Ship, Plane, Truck, ArrowRight } from 'lucide-react';
 import type { Shipment } from '../../data/types';
-import { Card } from '../ui/Card';
-import { Badge } from '../ui/Badge';
+import { Card } from '../ui/card';
+import { Badge } from '../ui/badge';
 
 interface ShipmentHeaderProps {
   shipment: Shipment;
