@@ -405,7 +405,7 @@ export function Sidebar({
           </div>
         )}
         <p className="text-[10px] text-sidebar-foreground/30 px-1">
-          Cross Region Agent · v2.4
+          Operations Readiness Manager · v2.4
         </p>
       </div>
     </aside>

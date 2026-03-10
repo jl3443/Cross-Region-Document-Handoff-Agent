@@ -1,4 +1,4 @@
-# DocFlow — Cross-Region Document Handoff Exception Manager
+# Operations Readiness Manager
 
 An AI-native **Document Handoff Exception Resolution Cockpit** built for enterprise trade operations. The system detects, classifies, and drives resolution of document exceptions before shipment cutoff — bridging the gap between "document received" and "handoff complete."
 

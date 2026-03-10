@@ -1,4 +1,4 @@
-# Application Flow — Cross-Region Document Handoff Exception Manager
+# Application Flow — Operations Readiness Manager
 
 This document maps the complete interaction flow of the demo, from login through all resolution paths to handoff completion.
 

@@ -94,7 +94,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
         <div className="mt-12 border-t border-slate-700/60 pt-6">
           <p className="text-slate-500 text-xs">Demo environment · All data is fictitious</p>
-          <p className="text-slate-600 text-[11px] mt-1">Cross Region Agent v2.4 · Powered by AI</p>
+          <p className="text-slate-600 text-[11px] mt-1">Operations Readiness Manager v2.4 · Powered by AI</p>
         </div>
       </motion.div>
 
